@@ -24,24 +24,26 @@ names(df) <- c("Date",	"Time",	"Weekday",	"P_pump",
 df <- data.table(df)
 df$date <- ymd_hms(paste(df$Date, df$Time))
 
-zero <- data.table(
-  df[Zero==1] %>%
-  arrange(date) %>%   
-  mutate(Diff = Runtime - lag(Runtime)))
+# zero <- data.table(
+#   df[Zero==1] %>%
+#   arrange(date) %>%   
+#   mutate(Diff = Runtime - lag(Runtime)))
+# 
+# zero[Diff > 11]
+# 
+# 
+# ggplot(zero, aes(date, Diff))+
+#   geom_point()
 
-zero[Diff > 11]
-
-
-ggplot(zero, aes(date, Diff))+
-  geom_point()
-
-
+Fig <- 
 ggplot(df[Zero==1], aes(date, pCO2_corr))+
-  geom_point()+
-  ylim(0,70)
+  geom_point(alpha=0.2)+
+  ylim(0,40)
 
-
-
-
+setwd("C:/Mueller_Jens_Data/180530_BloomSail/plots")
+tiff("HydroC_pCO2_zeroing_BloomSail.tiff", width = 500, height = 130, units = 'mm', res = 600, compression = 'lzw')
+Fig
+dev.off()
+rm(Fig)
 
 
