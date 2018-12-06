@@ -675,7 +675,8 @@ df <- na.omit(df)
 
 rm(Sensor, track)
 
-
+ggplot(df, aes(date, Tem.S))+
+  geom_path()
 
 
 setwd("C:/Mueller_Jens_Data/180530_BloomSail/Data/Merged_data_files")
