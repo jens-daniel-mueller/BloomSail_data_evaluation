@@ -1,3 +1,13 @@
+library(ggplot2)
+library(tidyverse)
+library(data.table)
+
+
+setwd("C:/Mueller_Jens_Data/180530_BloomSail/Data/Merged_data_files")
+Sensor <- data.table(read.csv("BloomSail_Sensor_Track_data.csv"))
+
+Sensor$date <- ymd_hms(Sensor$date)
+Sensor$start.date <- ymd_hms(Sensor$start.date)
 
 
 
@@ -162,17 +172,19 @@ rm(Fig)
 
 Fig <-
   ggplot()+
-  geom_path(data = Sensor[type=="P" & cast == "down"], aes(pCO2, Dep.S, linetype=cast, col=transect.ID))+
+  geom_vline(xintercept = c(100, 200, 400))+
+  geom_hline(yintercept = c(20))+
+  geom_path(data = Sensor[type=="P" & cast == "down"], aes(pCO2, Dep.S, linetype=cast, col=as.factor(transect.ID)))+
   #geom_path(data = Sensor[type=="P"], aes(Sal.S, Dep.S, linetype=cast, col="Salinity"))+
   scale_y_reverse()+
   facet_wrap(~label)+
   #xlim(0,1.6)+
-  scale_color_viridis(discrete = TRUE, direction = -1)+
-  labs(x="pCO2 [?atm, not yet RT corrected]", y="Depth [m]")
+  scale_color_viridis_d(direction = -1)+
+  labs(x="pCO2 [µatm, not yet RT corrected]", y="Depth [m]")
 
 
 setwd("C:/Mueller_Jens_Data/180530_BloomSail/Data/plots")
-tiff("./180818_Profiles_pCO2.tiff", width = 180, height = 200, units = 'mm', res = 600, compression = 'lzw')
+tiff("./Profiles_pCO2.tiff", width = 180, height = 200, units = 'mm', res = 600, compression = 'lzw')
 Fig
 dev.off()
 rm(Fig)
@@ -214,6 +226,40 @@ Fig <-
 
 setwd("C:/Mueller_Jens_Data/180530_BloomSail/Data/plots")
 tiff("./180818_Profiles_CT_downcast_date.tiff", width = 180, height = 200, units = 'mm', res = 600, compression = 'lzw')
+Fig
+dev.off()
+rm(Fig)
+
+
+Fig <-
+  ggplot()+
+  geom_vline(xintercept = c(100,400))+
+  geom_path(data = Sensor[type=="P" & cast =="down" & transect.ID != "180616" & Dep.S > 1.5], 
+            aes(pCO2, Dep.S, linetype=cast, group=interaction(label,transect.ID), col=as.factor(transect.ID)))+
+  scale_y_reverse()+
+  scale_color_brewer(palette = "Spectral", name="Date")+
+  xlim(50, 500)+
+  labs(x="pCO2 [µatm]", y="Depth [m]")
+
+
+setwd("C:/Mueller_Jens_Data/180530_BloomSail/Data/plots")
+tiff("./181128_Profiles_pCO2_downcast_date.tiff", width = 180, height = 200, units = 'mm', res = 600, compression = 'lzw')
+Fig
+dev.off()
+rm(Fig)
+
+Fig <-
+  ggplot()+
+  geom_path(data = Sensor[type=="P" & cast =="down" & transect.ID != "180616" & Dep.S > 1.5], 
+            aes(CT.calc, Dep.S, linetype=cast, group=interaction(label,transect.ID), col=as.factor(transect.ID)))+
+  scale_y_reverse()+
+  scale_color_brewer(palette = "Spectral", name="Date")+
+  xlim(1400, 1700)+
+  labs(x="CT* [µmol/kg, from pCO2 downcast and AT=1670 µM]", y="Depth [m]")
+
+
+setwd("C:/Mueller_Jens_Data/180530_BloomSail/Data/plots")
+tiff("./181128_Profiles_CT_downcast_date.tiff", width = 180, height = 200, units = 'mm', res = 600, compression = 'lzw')
 Fig
 dev.off()
 rm(Fig)
