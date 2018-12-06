@@ -106,7 +106,8 @@ Flush <- Flush.all %>%
 
 
 Flush.one <- Flush %>% 
-  filter(Flush_id == 98)
+  filter(Flush_id == 98) %>% 
+  select(sec, pCO2_corr)
 
 
 
@@ -114,31 +115,23 @@ ggplot(Flush.one, aes(sec, pCO2_corr))+
   geom_point()
 
 
-library(minpack.lm)
-curve.nlslrc = nlsLM(pCO2_corr ~ Am*(1-((1-(Rd/Am))^(1-(date.time.sec/LCP)))),
-                     start=list(Am=(max(photolrc)-min(photolrc)),
-                                Rd=-min(photolrc),
-                                LCP= (max(photolrc)-1)),
-                     data = Flush.one)
-coef(curve.nlslrc)
-#      Am         Rd        LCP 
-#8.011311   1.087484 -20.752957
 
-plot(photolrc ~ PARlrc, data = curvelrc)
-lines(0:1300, 
-      predict(curve.nlslrc, 
-              newdata = data.frame(PARlrc = 0:1300)))
+qplot(sec, pCO2_corr, data = Flush.one)
 
 
-
-nls(pCO2_corr ~ yf + (y0 - yf) * exp(-alpha * sec), 
-    data = Flush.one)
+# nls(y ~ yf + (y0 - yf) * exp(-alpha * t), 
+#     data = sensor1,
+#     start = list(y0 = 54, yf = 25, alpha = 1))
 
 fit <- nls(pCO2_corr ~ SSasymp(sec, yf, y0, log_alpha), data = Flush.one)
 fit
 
 
-qplot(sec, pCO2_corr, data = augment(fit)) + geom_line(aes(pCO2_corr = .fitted))
+qplot(sec, pCO2_corr, data = augment(fit)) + geom_line(aes(y = .fitted))
+
+
+
+
 
 
 df %>% 
@@ -149,21 +142,6 @@ df %>%
   spread(term, estimate) %>% 
   mutate(alpha = exp(log_alpha))
 
-
-
-
-
-
-Flush.one %>% 
-do(tidy(lm(pCO2_corr ~ date.time)))
-
-lm(Flush.one$pCO2_corr ~ Flush.one$date.time)
-
-as.numeric(Flush.one$date.time)
-
-nls(pCO2_corr ~ yf + (y0 - yf) * exp(-alpha * Date), 
-    data = Flush.one,
-    start = list(y0 = 70, yf = 110, alpha = 1))
 
 
 
