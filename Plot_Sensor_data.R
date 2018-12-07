@@ -1,6 +1,7 @@
 library(ggplot2)
 library(tidyverse)
 library(data.table)
+library(lubridate)
 
 
 setwd("C:/Mueller_Jens_Data/180530_BloomSail/Data/Merged_data_files")
@@ -9,6 +10,22 @@ Sensor <- data.table(read.csv("BloomSail_Sensor_Track_data.csv"))
 Sensor$date <- ymd_hms(Sensor$date)
 Sensor$start.date <- ymd_hms(Sensor$start.date)
 
+# # safe data subset for Jugend forscht project of Ben Ole Grabler
+# df.tem <-
+#   Sensor %>% 
+#   filter(label %in% c("P07", "P10")) %>% 
+#   select(date, lat, lon, Dep.S, Tem.S, Sal.S, start.date, label, cast, transect.ID) %>% 
+#   rename(sal = Sal.S, dep = Dep.S, tem = Tem.S)
+# 
+# write.csv(df.tem, "BloomSail_Sensor_P07P10_TemSalDep.csv", row.names = FALSE)
+# rm(df.tem)
+# 
+# df.route <-
+#   Sensor %>% 
+#   select(date, lat, lon, type, label, cast, transect.ID)
+# 
+# write.csv(df.route, "BloomSail_route.csv", row.names = FALSE)
+# rm(df.route)
 
 
 Fig <-
