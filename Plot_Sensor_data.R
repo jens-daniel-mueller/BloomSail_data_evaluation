@@ -30,8 +30,8 @@ Sensor$start.date <- ymd_hms(Sensor$start.date)
 
 Fig <-
   ggplot()+
-  geom_point(data = temp[Area == "BS"], aes(date, pCO2, col="Finnmaid"))+
-  geom_point(data = df[Dep.S < 4 & Dep.S > 2 & 
+  #geom_point(data = temp[Area == "BS"], aes(date, pCO2, col="Finnmaid"))+
+  geom_point(data = Sensor[Dep.S < 4 & Dep.S > 2 & 
                          cast == "down" &
                          label %in% c("P10", "P04", "P02", "P12")], aes(date, pCO2, col="Tina V"))+
   scale_color_brewer(palette = "Set1", name = "platform")+
@@ -48,8 +48,8 @@ rm(Fig)
 
 Fig <-
   ggplot()+
-  geom_point(data = temp[Area == "BS"], aes(date, Tem))+
-  geom_point(data = df[Dep.S < 6 & 
+  #geom_point(data = temp[Area == "BS"], aes(date, Tem))+
+  geom_point(data = Sensor[Dep.S < 6 & 
                          cast == "down" &
                          label %in% c("P10", "P04", "P02", "P12")], aes(date, Tem.S, col=Dep.S))+
   scale_color_viridis()
@@ -79,8 +79,8 @@ rm(Fig)
 
 Fig <-
   ggplot()+
-  geom_point(data = temp[Area == "BS"], aes(date, Sal, col="Finnmaid"))+
-  geom_point(data = df[Dep.S < 4 & Dep.S > 2 & 
+  #geom_point(data = temp[Area == "BS"], aes(date, Sal, col="Finnmaid"))+
+  geom_point(data = Sensor[Dep.S < 4 & Dep.S > 2 & 
                          cast == "down" &
                          label %in% c("P10", "P04", "P02", "P12")], aes(date, Sal.S, col="Tina V"))+
   scale_color_brewer(palette = "Set1", name = "platform")
@@ -93,6 +93,17 @@ Fig
 dev.off()
 rm(Fig)
 
+
+# #### Data provided to Michael Glockzin for comparison to Finnmaid observations
+# 
+# df.Micha <- Sensor[Dep.S < 4 & Dep.S > 2 & cast == "down" &  label %in% c("P10", "P04", "P02", "P12")]
+# 
+# ggplot(df.Micha, aes(date, Sal.S, col=Dep.S))+
+#   geom_point()+
+#   facet_wrap(~label)
+# 
+# setwd("C:/Mueller_Jens_Data/180530_BloomSail/Data/Merged_data_files")
+# write.csv(df.Micha, "BloomSail_data_Finnmaid.csv", row.names = FALSE)
 
 
 Fig <-
