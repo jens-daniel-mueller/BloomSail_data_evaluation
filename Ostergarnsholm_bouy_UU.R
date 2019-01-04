@@ -23,6 +23,8 @@ for (file in files){
     tempo$start.date <- start.date
     tempo$date <- tempo$date + tempo$start.date
 
+    tempo$transect.ID <- substr(file, 1, 6)
+    
     tempo$label <- substr(file, 11,12)
     tempo$cast <- "up"
     tempo[date < mean(tempo[Dep.S == max(tempo$Dep.S)]$date)]$cast <- "down"
@@ -63,11 +65,7 @@ surface.ts <-
   ungroup()
 
 
-### read GPX track from GPS Logger file
-
-
-#### load track data ####
-
+### read GPX track from GPS Logger file ####
 
 setwd("C:/Mueller_Jens_Data/180530_BloomSail/Data/TRack/GPS_Logger_Track")
 files <- list.files(pattern = "[.]txt$")
@@ -102,15 +100,11 @@ rm(dataset, file, files)
 
 #### Merge track and sensor data ###
 
-
 all <- merge(track, df, all=TRUE)
 all$lon<-na.approx(all$lon, na.rm = F)
 all$lat<-na.approx(all$lat, na.rm = F)
 
-
 all <- na.omit(all)
-
-
 
 
 #### plot data from sensor package ####
@@ -118,11 +112,10 @@ all <- na.omit(all)
 
 setwd("C:/Mueller_Jens_Data/180530_BloomSail/plots")
 
-
 #### plot profiles ####
 
 
-all %>% 
+df %>% 
   filter(label=="bo", cast=="down") %>%
 ggplot(aes(pCO2, Dep.S, col=as.factor(start.date)))+
   geom_path()+
@@ -159,7 +152,6 @@ ggsave("OGB_Sal_profiles.jpg")
 
 #### plot surface timeseries data at bouy ####
 
-
 surface.ts %>%   
 ggplot()+
   geom_errorbar(aes(date, ymax=pCO2.max, ymin=pCO2.min))+
@@ -191,9 +183,19 @@ ggplot()+
 ggsave("OGB_surface_Sal_timeseries.jpg")  
 
 
+#### plot surface maps around Ostergarnsholm ####
+
+all %>%
+  filter(label %in% c("in", "ou")) %>% 
+ggplot(aes(lon, lat, col=pCO2))+
+  geom_point()+
+  scale_color_paletteer_c("oompaBase", "jetColors", name="pCO2 [µatm]")+
+  facet_wrap(~transect.ID)+
+  theme_bw()
   
-  
-  
+ggsave("OGB_surface_pCO2_map.jpg")  
+
+
   
 
 
