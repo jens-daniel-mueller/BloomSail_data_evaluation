@@ -107,6 +107,18 @@ all$lat<-na.approx(all$lat, na.rm = F)
 all <- na.omit(all)
 
 
+#### safe data files ####
+
+all <-
+  all %>%
+  select(-c(pH, Chl, O2))
+
+setwd("C:/Mueller_Jens_Data/180530_BloomSail/Data/Merged_data_files")
+
+write.csv(all, "BloomSail_Ostergarnsholm.csv", row.names = FALSE)
+
+
+
 #### plot data from sensor package ####
 
 
@@ -185,15 +197,29 @@ ggsave("OGB_surface_Sal_timeseries.jpg")
 
 #### plot surface maps around Ostergarnsholm ####
 
+map <- read.csv("C:/Mueller_Jens_Data/Sea_charts/EMODnet/D6_2018.xyz/Bathymetry_Gotland_east.csv")
+
+ggplot(map, aes(lon, lat, fill=elev))+
+  geom_raster()+
+  scale_fill_gradient(low = "grey20", high = "grey80", na.value = "black", name="Depth [m]")+
+  coord_quickmap(expand = 0)+
+  labs(x="Longitude [°E]", y="Latitude [°N]")+
+  theme_bw()
+
+
 all %>%
   filter(label %in% c("in", "ou")) %>% 
-ggplot(aes(lon, lat, col=pCO2))+
-  geom_point()+
+ggplot()+
+  geom_raster(data=map, aes(lon, lat, fill=elev))+
+  scale_fill_gradient(low = "grey20", high = "grey80", na.value = "black", name="Depth [m]")+
+  coord_quickmap(expand = 0, ylim = c(57.35,57.55), xlim = c(18.85,19.35))+
+  labs(x="Longitude [°E]", y="Latitude [°N]")+
+  geom_point(aes(lon, lat, col=pCO2))+
   scale_color_paletteer_c("oompaBase", "jetColors", name="pCO2 [µatm]")+
   facet_wrap(~transect.ID)+
   theme_bw()
   
-ggsave("OGB_surface_pCO2_map.jpg")  
+ggsave("OGB_surface_pCO2_map.jpg", width = 10, height = 7)  
 
 
   
