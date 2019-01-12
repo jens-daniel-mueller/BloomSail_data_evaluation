@@ -670,8 +670,11 @@ df <- merge(track, Sensor, all=TRUE)
 df$lon<-na.approx(df$lon, na.rm = F)
 df$lat<-na.approx(df$lat, na.rm = F)
 
+df <-
+df %>% 
+  filter(!is.na(Tem.S))
 
-df <- na.omit(df)
+#df <- na.omit(df)
 
 rm(Sensor, track)
 
