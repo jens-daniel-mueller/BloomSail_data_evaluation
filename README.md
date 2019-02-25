@@ -8,3 +8,4 @@ Data are stored in a folder "Data", which is not synchronized with this repo bef
 
 R script named 1_XXX.R read-in data files from individual platforms/sampling techniques, perform same basic quality checks, and safe summarized date sets into the folder "Data/Summarized_data_files".
 
+-GPS data from one transect in June still missing
