@@ -44,7 +44,7 @@ df <- dataset
 rm(dataset, file, files)
 
 
-#### plots to check succesful read-in and data-quality####
+#### plots to check succesful read-in and data-quality ####
 
 # Profiling data
 
