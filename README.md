@@ -8,6 +8,12 @@ Data are stored in a folder "Data", which is not synchronized with this repo bef
 
 1) R script named 1_XXX.R read-in data files from individual platforms/sampling techniques, perform same basic quality checks, and safe summarized date sets into the folder "Data/_summarized_data_files".
 
+-Column names:
+  -date, time, date.time
+  -ID: unique identifier of each transect referring to the starting date
+  -type: operation mode of the sensor package (T: towed transect; P: Profiling at station)
+  -station: sampling location, usually on out of P01-P13, OGB, or few others
+
 -GPS data from one transect in June still missing
 
 2) Calculations and data manipulation
