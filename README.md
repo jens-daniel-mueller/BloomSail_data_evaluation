@@ -11,8 +11,10 @@ Data are stored in a folder "Data", which is not synchronized with this repo bef
 -Column names:
   -date, time, date.time
   -ID: unique identifier of each transect referring to the starting date
-  -type: operation mode of the sensor package (T: towed transect; P: Profiling at station)
-  -station: sampling location, usually on out of P01-P13, OGB, or few others
+  -type: Operation mode of the sensor package (T: towed transect; P: Profiling at station)
+  -station: Sampling location, usually on out of P01-P13, OGB, or few others
+  -dep: Water depth (m)
+  -sal: Salinity
 
 -GPS data from one transect in June still missing
 
