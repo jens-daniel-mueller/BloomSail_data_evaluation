@@ -1,4 +1,4 @@
-# BloomSail_data_evaluation
+# BloomSail data evaluation
 
 Evaluation of marine biogeochemical data recorded in the Central Baltic Sea (east coast of Gotland) during the BloomSail expedtion in Summer 2018 in order to better understand organic matter production and control of cyanobacteria blooms.
 
