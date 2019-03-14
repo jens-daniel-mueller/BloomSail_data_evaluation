@@ -161,7 +161,16 @@ df %>%
   geom_point()+
   facet_wrap(~transect.ID, scales = "free_x")
 
-
+df <-
+  df %>% 
+  select(date.time=date,
+         ID=transect.ID,
+         type,
+         station=label,
+         cast,
+         dep=Dep.S,
+         sal=Sal.S,
+         pCO2,pH,O2,Chl)
 
 write_csv(df, here("Data/_summarized_data_files", "Tina_V_Sensor_Profiles_Transects.csv"))
 
