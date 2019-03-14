@@ -1,10 +1,11 @@
 library(tidyverse)
 library(data.table)
 library(lubridate)
+library(here)
 
 #### read data from sensor package ####
 
-setwd("C:/Mueller_Jens_Data/180530_BloomSail/BloomSail_data_evaluation/Data/Tina_V/Sensor/Profiles_Transects")
+setwd("C:/Mueller_Jens_Data/180530_BloomSail/BloomSail_data_evaluation/Data/TinaV/Sensor/Profiles_Transects")
 files <- list.files(pattern = "[.]cnv$")
 #file <- files[1]
 
@@ -162,8 +163,7 @@ df %>%
 
 
 
-setwd("C:/Mueller_Jens_Data/180530_BloomSail/BloomSail_data_evaluation/Data/Summarized_data_files")
-write.csv(df, "Tina_V_Sensor_Profiles_Transects.csv", row.names = FALSE)
+write_csv(df, here("Data/_summarized_data_files", "Tina_V_Sensor_Profiles_Transects.csv"))
 
 
 
