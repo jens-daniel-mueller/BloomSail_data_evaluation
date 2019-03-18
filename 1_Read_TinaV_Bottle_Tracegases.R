@@ -1,52 +1,59 @@
-library(ggplot2)
 library(tidyverse)
-library(data.table)
-library(lubridate)
+library(here)
 
 
-setwd("C:/Mueller_Jens_Data/180530_BloomSail/Data/Merged_data_files")
-Sensor <- data.table(read.csv("BloomSail_Sensor_Track_data.csv"))
+Bottle <- read_csv(here("Data/TinaV/Bottle/Tracegases", "BloomSail_bottle_CO2_all.csv"),
+                   col_types = list("c","c","n","n","n","n","n"))
 
-Sensor$date <- ymd_hms(Sensor$date)
-Sensor$start.date <- ymd_hms(Sensor$start.date)
+Bottle <- Bottle %>% 
+  select(ID=transect.ID,
+         station=label,
+         dep=Dep,
+         sal=Sal,
+         CT, AT,
+         pH_Mosley = pH.Mosley)
 
-
-setwd("C:/Mueller_Jens_Data/180530_BloomSail/Data/Bottle/CO2")
-Bottle <- data.table(read.csv("BloomSail_bottle_CO2_all.csv"))
-
-# Bottle$date <- ymd(Bottle$transect.ID)
-# 
-# Bottle$CT <- as.numeric(as.character(Bottle$CT))
-# 
-# Bottle %>% 
-#   filter(label %in% c("P07", "P10")) %>% 
-#   ggplot()+
-#   geom_path(aes(date, CT, col=as.factor(Dep)))+
-#   facet_wrap(~label)
-
-
-stations <-
-  Sensor %>% 
-  filter(label %in% unique(Bottle$label)) %>% 
-  group_by(transect.ID, label) %>% 
-  summarise(date = mean(date),
-            lat = mean(lat),
-            lon = mean(lon)) %>% 
-  ungroup()
-
-
-df <- merge(Bottle, stations, all=TRUE)
-df$CT <- as.numeric(as.character(df$CT))
-df <- na.omit(df)
-
-df %>% 
-  filter(label %in% c("P07", "P10")) %>% 
+Bottle %>% 
   ggplot()+
-    geom_path(aes(date, CT, col=as.factor(Dep)))+
-    facet_wrap(~label)
-  
+  geom_path(aes(pH_Mosley,dep))+
+  geom_point(aes(pH_Mosley,dep))+
+  scale_y_reverse()+
+  facet_wrap(~interaction(station,ID))+
+  scale_color_brewer(palette = "Spectral")+
+  labs(x="pH [spec, Mueller, 25C]", y="Depth [m]")
+
+Bottle %>% 
+  filter(station %in% c("P07", "P10")) %>% 
+  ggplot()+
+  geom_path(aes(AT,dep, col=ID))+
+  geom_point(aes(AT,dep, col=ID))+
+  scale_y_reverse()+
+  facet_wrap(~station)
+
+Bottle %>% 
+  filter(station %in% c("P07", "P10")) %>% 
+  ggplot()+
+  geom_path(aes(CT,dep, col=ID))+
+  geom_point(aes(CT,dep, col=ID))+
+  scale_y_reverse()+
+  facet_wrap(~station)
+
+Bottle %>% 
+  filter(station %in% c("P07", "P10")) %>% 
+  ggplot()+
+  geom_path(aes(sal,dep, col=ID))+
+  geom_point(aes(sal,dep, col=ID))+
+  scale_y_reverse()+
+  facet_wrap(~station)
+
+
+Bottle %>% 
+  filter(station %in% c("P07", "P10"), dep<10) %>% 
+  ggplot()+
+  geom_path(aes(ymd(ID),CT, col=as.factor(dep)))+
+  facet_wrap(~station)
 
 
 
 
-
+write_csv(Bottle, here("Data/_summarized_data_files", "TinaV_bottle_CO2_lab.csv"))
