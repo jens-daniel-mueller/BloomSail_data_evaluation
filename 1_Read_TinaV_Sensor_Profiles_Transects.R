@@ -16,8 +16,8 @@ for (file in files){
   start.date <- mdy_hms(start.date, tz="UTC")
   
   tempo <- read.delim(file, sep="", skip = 160, header = FALSE)
-  tempo <- data.table(tempo[,c(2,3,4,5,7,9,11,13)])
-  names(tempo) <- c("date", "Dep.S", "Tem.S", "Sal.S", "pH", "Chl", "O2", "pCO2")
+  tempo <- data.table(tempo[,c(2,3,4,5,6,7,9,11,13)])
+  names(tempo) <- c("date", "Dep.S", "Tem.S", "Sal.S", "V_pH", "pH", "Chl", "O2", "pCO2")
   tempo$start.date <- start.date
   tempo$date <- tempo$date + tempo$start.date
   
@@ -77,6 +77,14 @@ df %>%
   scale_y_reverse()+
   facet_wrap(~transect.ID)
 
+df %>% 
+  filter(type == "P") %>% 
+  ggplot(aes(V_pH, Dep.S, col=label, linetype=cast))+
+  geom_path()+
+  scale_y_reverse()+
+  facet_wrap(~transect.ID)
+
+df[pH < 7.5]$V_pH <- NA
 df[pH < 7.5]$pH <- NA
 
 df[transect.ID == "180709" & label == "P03" & Dep.S < 5 & cast == "down"]$pH <- NA
@@ -84,6 +92,12 @@ df[transect.ID == "180709" & label == "P05" & Dep.S < 10 & cast == "down"]$pH <-
 df[transect.ID == "180718" & label == "P10" & Dep.S < 3 & cast == "down"]$pH <- NA
 df[transect.ID == "180815" & label == "P03" & Dep.S < 2 & cast == "down"]$pH <- NA
 df[transect.ID == "180820" & label == "P11" & Dep.S < 15 & cast == "down"]$pH <- NA
+
+df[transect.ID == "180709" & label == "P03" & Dep.S < 5 & cast == "down"]$V_pH <- NA
+df[transect.ID == "180709" & label == "P05" & Dep.S < 10 & cast == "down"]$V_pH <- NA
+df[transect.ID == "180718" & label == "P10" & Dep.S < 3 & cast == "down"]$V_pH <- NA
+df[transect.ID == "180815" & label == "P03" & Dep.S < 2 & cast == "down"]$V_pH <- NA
+df[transect.ID == "180820" & label == "P11" & Dep.S < 15 & cast == "down"]$V_pH <- NA
 
 
 df %>% 
@@ -163,14 +177,15 @@ df %>%
 
 df <-
   df %>% 
-  select(date.time=date,
+  select(date_time=date,
          ID=transect.ID,
          type,
          station=label,
          cast,
          dep=Dep.S,
          sal=Sal.S,
-         pCO2,pH,O2,Chl)
+         tem=Tem.S,
+         pCO2,pH,V_pH,O2,Chl)
 
 write_csv(df, here("Data/_summarized_data_files", "Tina_V_Sensor_Profiles_Transects.csv"))
 
