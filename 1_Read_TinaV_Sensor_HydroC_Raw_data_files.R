@@ -26,16 +26,16 @@ names(df) <- c("Date",	"Time",	"Weekday",	"P_pump",
 
 df$date.time <- ymd_hms(paste(df$Date, df$Time))
 
-#### Read Contros corrected data file ####
+# #### Read Contros corrected data file ####
 # 
 # setwd("C:/Mueller_Jens_Data/180530_BloomSail/BloomSail_data_evaluation/Data/TinaV/Sensor/HydroC-pCO2/corrected_Contros")
 # 
-# df_corr <- 
+# df_corr <-
 #   data.table(read.delim("parameter&pCO2s(method 43).txt", sep=";", dec=",", header = FALSE))#,
 #                         colClasses = c(rep("character",2), rep("numeric", 21))))
 # 
 # rm(files)
-#   
+# 
 # names(df) <- c("Date",	"Time",	"Weekday",	"P_pump",
 #            "p_NDIR",	"p_in",	"I_total",	"U_supply",
 #           "Zero",	"Flush", "external_pump",	"Runtime",
@@ -56,6 +56,11 @@ df %>%
 df %>% 
   filter(Zero == 0, Flush == 0) %>% 
   ggplot(aes(date.time, p_NDIR))+
+  geom_point()
+
+df %>% 
+  filter(Zero == 0, Flush == 0) %>% 
+  ggplot(aes(date.time, P_pump))+
   geom_point()
 
 
