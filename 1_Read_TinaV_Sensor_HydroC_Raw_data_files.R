@@ -3,7 +3,9 @@ library(data.table)
 library(lubridate)
 
 
-setwd("C:/Mueller_Jens_Data/180530_BloomSail/BloomSail_data_evaluation/Data/Tina_V/Sensor/HydroC-pCO2")
+#### Read data file as downloaded from HydroC ####
+
+setwd("C:/Mueller_Jens_Data/180530_BloomSail/BloomSail_data_evaluation/Data/TinaV/Sensor/HydroC-pCO2")
 files <- list.files(pattern = "*.txt")
 
 df <- files %>%
@@ -23,6 +25,25 @@ names(df) <- c("Date",	"Time",	"Weekday",	"P_pump",
           "xCO2_corr",	"T_control",	"T_gas",	"%rH_gas")
 
 df$date.time <- ymd_hms(paste(df$Date, df$Time))
+
+#### Read Contros corrected data file ####
+# 
+# setwd("C:/Mueller_Jens_Data/180530_BloomSail/BloomSail_data_evaluation/Data/TinaV/Sensor/HydroC-pCO2/corrected_Contros")
+# 
+# df_corr <- 
+#   data.table(read.delim("parameter&pCO2s(method 43).txt", sep=";", dec=",", header = FALSE))#,
+#                         colClasses = c(rep("character",2), rep("numeric", 21))))
+# 
+# rm(files)
+#   
+# names(df) <- c("Date",	"Time",	"Weekday",	"P_pump",
+#            "p_NDIR",	"p_in",	"I_total",	"U_supply",
+#           "Zero",	"Flush", "external_pump",	"Runtime",
+#           "Signal_raw",	"Signal_ref",	"T_sensor",
+#           "Signal_proc",	"Conc_estimate",	"pCO2_corr",
+#           "xCO2_corr",	"T_control",	"T_gas",	"%rH_gas")
+# 
+# df$date.time <- ymd_hms(paste(df$Date, df$Time))
 
 
 #### plots to check succesful read-in and data-quality ####
