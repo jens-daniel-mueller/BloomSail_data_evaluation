@@ -8,8 +8,15 @@ library(here)
 Sensor <- read_csv(here("Data/_summarized_data_files", "Tina_V_Sensor_Profiles_Transects.csv"))
 
 Sensor <- Sensor %>% 
-  mutate(pCO2 = as.numeric(pCO2))
+  mutate(pCO2 = as.numeric(pCO2),
+         ID = as.factor(ID),
+         Chl = if_else(dep<1.5, NaN, Chl)) %>% 
+  filter(!(station %in% c("PX1", "PX2")))
 
+Sensor_all <- Sensor
+
+Sensor <- Sensor %>% 
+  filter(cast == "down")
 
 #### Plot vertical profiles ####
 
@@ -23,29 +30,84 @@ Sensor_profile_long <-
          "Temperature (deg C)" = tem,
          "pCO2 (uatm)" = pCO2,
          "pH (not calibrate)" = pH,
-         "O2 (% sat.)"=O2,
+         "O2 (sat.)"=O2,
           Chl) %>% 
   gather("parameter", "value", 6:11)
 
-# Sensor_profile_long_mean <-
-#   Sensor_profile_surface_long %>% 
-#   group_by(ID, parameter) %>% 
-#   summarise_all(mean, na.rm=TRUE) %>% 
-#   ungroup()
+
+Sensor_profile_long_mean <-
+  Sensor_profile_long %>%
+  mutate(dep.int = ) %>% 
+  group_by(ID, parameter) %>%
+  summarise_all(mean, na.rm=TRUE) %>%
+  ungroup()
 
 
 #### Plot vertical Profiles ####
 
 
-
+Sensor_profile_long %>% 
 ggplot()+
-  geom_path(data = Sensor[type=="P" & cast == "down"], aes(Sal.S, Dep.S, col=transect.ID))+
+  geom_path(aes(value, dep, col=ID, group=interaction(ID, station)))+
   scale_y_reverse()+
-  facet_wrap(~label)+
-  scale_x_continuous(limits = c(6.5,7.5), breaks = seq(0,35,0.5))+
-  scale_color_viridis(discrete = TRUE, direction = -1)+
-  labs(x="Salinity", y="Depth [m]")
+  facet_wrap(~parameter, scales = "free_x", ncol = 2)+
+  scale_color_viridis_d(name="Date")+
+  labs(y="Depth [m]")+
+  theme_bw()
 
-ggsave(here("/Plots/TinaV/Sensor", "Sensor_surface_timeseries_all_parameters.jpg"), width = 6, height = 10)
+ggsave(here("/Plots/TinaV/Sensor", "Sensor_profiles_by_parameters.jpg"), width = 10, height = 12, dpi=300)
+
+
+Sensor_profile_long %>% 
+ggplot()+
+  geom_path(aes(value, dep, col=ID))+
+  scale_y_reverse()+
+  facet_grid(station~parameter, scales = "free_x")+
+  scale_color_viridis_d(name="Date")+
+  labs(y="Depth [m]")+
+  theme_bw()
+
+ggsave(here("/Plots/TinaV/Sensor", "Sensor_profiles_by_parameters_station.jpg"), width = 10, height = 15, dpi=300)
+
+
+Sensor_profile_long %>% 
+ggplot()+
+  geom_path(aes(value, dep, col=station))+
+  scale_y_reverse()+
+  facet_grid(ID~parameter, scales = "free_x")+
+  #scale_color_viridis_d(name="Station")+
+  labs(y="Depth [m]")+
+  theme_bw()
+
+ggsave(here("/Plots/TinaV/Sensor", "Sensor_profiles_by_parameters_Date.jpg"), width = 10, height = 15, dpi=300)
+
+
+#### Plot all vertical profiles individually ####
+
+
+rm(i_ID, i_parameter, i_station)
+
+for(i_ID in unique(Sensor_profile_long$ID)){
+  for(i_station in unique(Sensor_profile_long$station)){
+    for(i_parameter in unique(Sensor_profile_long$parameter)){
+
+Sensor_profile_long %>% 
+  filter(ID == i_ID,
+         station == i_station,
+         parameter == i_parameter) %>% 
+  ggplot(aes(value, dep, col=cast))+
+  geom_path()+
+  scale_y_reverse()+
+  scale_color_brewer(palette = "Set1")+
+  labs(y="Depth [m]", x=i_parameter, title = str_c("Date: ",i_ID," | Station: ",i_station))+
+  theme_bw()
+
+print(str_c(i_ID,"_",i_station,"_",i_parameter,".jpg"))
+ggsave(here("/Plots/TinaV/Sensor/all_profiles", str_c(i_ID,"_",i_station,"_",i_parameter,".jpg")),
+       width = 5, height = 5)
+
+    }
+  }
+}
 
 
