@@ -11,8 +11,7 @@ library(zoo)
 Sensor <- read_csv(here::here("Data/_summarized_data_files", "Tina_V_Sensor_Profiles_Transects.csv")) %>% 
   mutate(pCO2 = as.numeric(pCO2))
 
-
-HC <- read_csv( here("Data/_summarized_data_files", "Tina_V_Sensor_HydroC.csv"))
+HC <- read_csv(here::here("Data/_summarized_data_files", "Tina_V_Sensor_HydroC.csv"))
 
 
 #### Merge Sensor and HydroC data ####
