@@ -1,6 +1,7 @@
 #### Load required packages ####
 
 library(tidyverse)
+library(lubridate)
 library(here)
 
 #### Read summarized sensor data file ####
@@ -19,16 +20,12 @@ Sensor <- Sensor %>%
 Sensor_mean <- Sensor %>% 
   filter(Zero %in% c(0,NA),
          Flush %in% c(0,NA)) %>% 
+  select(-c(Flush, Zero)) %>% 
   mutate(dep_int = cut(dep, seq(0,30,5))) %>% 
   group_by(ID, dep_int, type, cast) %>% 
-  summarise_all(mean, na.rm=TRUE) %>% 
+  summarise_all(list("mean"), na.rm=TRUE) %>% 
   ungroup()
 
-# Sensor_profile_surface <- Sensor %>% 
-#   filter(dep < 4, dep > 2, cast == "down", type == "P")
-# 
-# Sensor_transect <- Sensor %>% 
-#   filter(dep < 4, dep > 0.5, type == "T")
 
 Sensor_mean_long <-
   Sensor_mean %>% 
@@ -36,47 +33,25 @@ Sensor_mean_long <-
          Salinity = sal,
          "Temperature (deg C)" = tem,
          "pCO2 (uatm)" = pCO2,
-         "CT (umol/kg)" = CT,
+         "CT* (umol/kg)" = CT,
          "pH (not calibrate)" = pH,
          "O2 (% sat.)"=O2,
           Chl) %>% 
   gather("parameter", "value", 6:12)
 
-# 
-# Sensor_transect_long <-
-#   Sensor_transect %>% 
-#   select(date_time, ID, station,
-#          Salinity = sal,
-#          "Temperature (deg C)" = tem,
-#          "pCO2 (uatm)" = pCO2,
-#          "CT (umol/kg)" = CT,
-#          "pH (not calibrate)" = pH,
-#          "O2 (% sat.)"=O2,
-#          Chl) %>% 
-#   gather("parameter", "value", 4:10)
-# 
-
-
-
-
-# ggplot()+
-#   geom_point(data=Sensor_transect_long, aes(date_time, value, col="Transect (0.5-4m)"), shape=21)+
-#   geom_point(data=Sensor_profile_surface_long, aes(date_time, value, col="Profiles (2-4m)"), shape=21)+
-#   geom_path(data=Sensor_profile_surface_long_mean, aes(date_time, value, col="Profiles (2-4m)"))+
-#   scale_color_brewer(palette = "Set1", name = "Recording")+
-#   labs(x="Date")+
-#   facet_grid(parameter~., scales = "free_y")+
-#   theme_bw()
 
 theme_set(theme_bw())
 
 Sensor_mean_long %>% 
-  filter(cast=="down", type=="P", !is.na(dep)) %>% 
-  ggplot(aes(date_time, value, col=dep))+
+  filter(!is.na(dep), type=="P") %>% 
+  ggplot(aes(date_time, value, col=dep, shape=cast, linetype=cast))+
+  geom_rect(aes(xmin=ymd_h("2018-07-05T12"), xmax=ymd_h("2018-07-24T01"),
+                ymin=-Inf, ymax=Inf), alpha=0.8, col="grey80", fill="grey80")+
   geom_point()+
   geom_path()+
   labs(x="Date")+
-  facet_grid(parameter~., scales = "free_y")
+  scale_color_viridis_d()+
+  facet_wrap(~parameter, scales = "free_y", ncol = 2)
 
-ggsave(here("/Plots/TinaV/Sensor", "Sensor_timeseries_all_parameters.jpg"), width = 6, height = 12)
+ggsave(here::here("/Plots/TinaV/Sensor", "Sensor_timeseries_all_parameters.jpg"), width = 10, height = 12)
 
