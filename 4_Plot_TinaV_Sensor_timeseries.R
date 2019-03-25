@@ -6,7 +6,7 @@ library(here)
 
 #### Read summarized sensor data file ####
 
-Sensor <- read_csv(here("Data/_merged_data_files", "BloomSail_Sensor_HydroC_CT.csv"))
+Sensor <- read_csv(here::here("Data/_merged_data_files", "BloomSail_Sensor_HydroC_CT_O2.csv"))
 
 Sensor <- Sensor %>% 
   mutate(pCO2 = as.numeric(pCO2),
@@ -36,8 +36,9 @@ Sensor_mean_long <-
          "CT* (umol/kg)" = CT,
          "pH (not calibrate)" = pH,
          "O2 (% sat.)"=O2,
+         "O2 (umol/l)"=O2_conc,
           Chl) %>% 
-  gather("parameter", "value", 6:12)
+  gather("parameter", "value", 6:13)
 
 
 theme_set(theme_bw())
