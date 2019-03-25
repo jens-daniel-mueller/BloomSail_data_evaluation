@@ -5,10 +5,11 @@ library(here)
 
 #### Read summarized sensor data file ####
 
-Sensor <- read_csv(here("Data/_summarized_data_files", "Tina_V_Sensor_Profiles_Transects.csv"))
+Sensor <- read_csv(here("Data/_merged_data_files", "BloomSail_Sensor_HydroC_CT.csv"))
 
 Sensor <- Sensor %>% 
   mutate(pCO2 = as.numeric(pCO2),
+         CT = as.numeric(CT),
          ID = as.factor(ID),
          Chl = if_else(dep<1.5, NaN, Chl)) %>% 
   filter(!(station %in% c("PX1", "PX2")))
@@ -29,22 +30,34 @@ Sensor_profile_long <-
          Salinity = sal,
          "Temperature (deg C)" = tem,
          "pCO2 (uatm)" = pCO2,
+         "CT (umol/kg)" = CT,
          "pH (not calibrate)" = pH,
          "O2 (sat.)"=O2,
           Chl) %>% 
-  gather("parameter", "value", 6:11)
+  gather("parameter", "value", 6:12)
 
 
 Sensor_profile_long_mean <-
   Sensor_profile_long %>%
-  mutate(dep.int = ) %>% 
-  group_by(ID, parameter) %>%
+  mutate(dep_int = as.numeric(cut(dep, seq(0.5,40,1), labels = seq(1,39,1)))) %>%
+  group_by(ID, parameter, dep_int) %>%
   summarise_all(mean, na.rm=TRUE) %>%
   ungroup()
 
 
 #### Plot vertical Profiles ####
 
+
+Sensor_profile_long_mean %>% 
+ggplot()+
+  geom_path(aes(value, dep_int, col=ID, group=interaction(ID, station)))+
+  scale_y_reverse()+
+  facet_wrap(~parameter, scales = "free_x", ncol = 2)+
+  scale_color_viridis_d(name="Date")+
+  labs(y="Depth [m]")+
+  theme_bw()
+
+ggsave(here("/Plots/TinaV/Sensor", "Sensor_profiles_by_parameters_mean.jpg"), width = 10, height = 14, dpi=300)
 
 Sensor_profile_long %>% 
 ggplot()+
@@ -55,7 +68,7 @@ ggplot()+
   labs(y="Depth [m]")+
   theme_bw()
 
-ggsave(here("/Plots/TinaV/Sensor", "Sensor_profiles_by_parameters.jpg"), width = 10, height = 12, dpi=300)
+ggsave(here("/Plots/TinaV/Sensor", "Sensor_profiles_by_parameters.jpg"), width = 10, height = 14, dpi=300)
 
 
 Sensor_profile_long %>% 
@@ -67,7 +80,7 @@ ggplot()+
   labs(y="Depth [m]")+
   theme_bw()
 
-ggsave(here("/Plots/TinaV/Sensor", "Sensor_profiles_by_parameters_station.jpg"), width = 10, height = 15, dpi=300)
+ggsave(here("/Plots/TinaV/Sensor", "Sensor_profiles_by_parameters_station.jpg"), width = 11, height = 15, dpi=300)
 
 
 Sensor_profile_long %>% 
@@ -79,7 +92,7 @@ ggplot()+
   labs(y="Depth [m]")+
   theme_bw()
 
-ggsave(here("/Plots/TinaV/Sensor", "Sensor_profiles_by_parameters_Date.jpg"), width = 10, height = 15, dpi=300)
+ggsave(here("/Plots/TinaV/Sensor", "Sensor_profiles_by_parameters_Date.jpg"), width = 11, height = 15, dpi=300)
 
 
 #### Plot all vertical profiles individually ####
