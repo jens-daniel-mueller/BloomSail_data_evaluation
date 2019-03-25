@@ -18,8 +18,6 @@ Sensor %>%
   filter(is.na(Flush))
 
 
-
-
 Sensor_CT <- Sensor %>%
   filter(!is.na(pCO2),
          !is.na(sal),
