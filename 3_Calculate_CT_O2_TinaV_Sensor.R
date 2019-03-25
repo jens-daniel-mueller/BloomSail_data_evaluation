@@ -51,11 +51,14 @@ df %>%
 
 ####calcualte O2 Concentration based on measured O2 saturation ####
 
+source("O2stoO2c.R")
+
 Sensor_O2 <- Sensor %>%
   filter(!is.na(tem),
          !is.na(sal),
          !is.na(O2)) %>% 
-  mutate(O2_conc = gas_satconc(S=sal, t=tem, species = "O2")*O2/100)
+  mutate(#O2_conc_marelac = gas_satconc(S=sal, t=tem, species = "O2")*O2/100,
+         O2_conc = O2stoO2c(O2sat = O2, T=tem, S=sal, P=dep/10, p_atm = 1013.5))
 
 df <- full_join(df, Sensor_O2)
 
@@ -68,8 +71,7 @@ df %>%
 df %>% 
   filter(dep<5, dep>2) %>% 
   ggplot(aes(O2, O2_conc, col=tem)) +
-  geom_point()+
-  scale_col
+  geom_point()
 
 
 
