@@ -30,7 +30,8 @@ df <-
   mutate(pCO2_corr_int = na.approx(pCO2_corr, na.rm = FALSE),
          p_NDIR_int = na.approx(p_NDIR, na.rm = FALSE),
          T_gas_int = na.approx(T_gas, na.rm = FALSE)) %>% 
-  filter(!is.na(ID))
+  fill(Flush, Zero) %>% 
+  filter(!is.na(ID)) 
 
 
 
@@ -90,7 +91,7 @@ ggsave(here::here("Plots/TinaV/Sensor/HydroC_diagnostics", "Operation_mode_T_gas
 
 
 df <- df %>% 
-  select(date_time, ID, station, cast, dep, sal, tem, pH, O2, Chl,
+  select(date_time, ID, type, station, cast, dep, sal, tem, pH, O2, Chl,
          Zero, Flush, pCO2 = pCO2_corr_int)
 
 
