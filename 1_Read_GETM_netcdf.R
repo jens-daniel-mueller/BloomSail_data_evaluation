@@ -55,10 +55,11 @@ ggplot() +
                        limits = c(min_col,max_col))+
   scale_y_reverse()+
   labs(x="Lon (°E)", y="Depth (m)", title = paste("August",i ,"| Route: E"))+
+  coord_cartesian(expand = 0)+
   theme_bw()
 
-ggsave(here::here("Plots/GETM/Sections", paste(i,"E.jpg",sep = "")),
-       width = 7, height = 3, dpi = 150)
+ggsave(here::here("Plots/GETM/Sections", paste(i,"_August_2017_Temp_Route_E.jpg",sep = "")),
+       width = 7, height = 4, dpi = 150)
 
 rm(E_sec_slice, E_sec_r, E_sec_r_df)
 }
@@ -80,7 +81,7 @@ t <- ncvar_get(E_ts, "time")/(60*60*24)
 
 head(t) # look at the first few entries in the time vector
 
-# var <- "mld_age_1"
+#var <- "mld_age_1"
 
 for (var in names(E_ts$var)){
 
@@ -105,9 +106,10 @@ E_ts_array_r_df %>%
   geom_raster(aes(y, x, fill = layer)) + 
   scale_fill_viridis_c(name=var)+
   labs(x="Days", y="Lon (°E)", title = paste("August 2017","| Finnmaid Route: E"))+
-  theme_bw()
+  theme_bw()+
+  coord_cartesian(expand = 0)
 
-ggsave(here::here("Plots/GETM/timeseries", paste(var,"_E_Aug_2017.tiff",sep = "")),
+ggsave(here::here("Plots/GETM/timeseries", paste(var,"_E_Aug_2017.jpg",sep = "")),
        width = 7, height = 5, dpi = 300)
 
 rm(E_ts_array, E_ts_array_r, E_ts_array_r_df, fillvalue)
