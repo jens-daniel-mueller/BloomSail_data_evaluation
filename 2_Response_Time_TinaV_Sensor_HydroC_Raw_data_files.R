@@ -1,5 +1,44 @@
+### load required packages ####
+
+library(tidyverse)
+library(here)
+library(lubridate)
+
+#### load data ####
+
+HC <- read_csv(here::here("Data/_summarized_data_files", "Tina_V_Sensor_HydroC.csv"))
+
+HC <- HC %>% 
+  filter(date_time > ymd_hm("2018-07-10T0900"),
+         date_time < ymd_hm("2018-07-10T1630"))
+
+HC %>% 
+ggplot(aes(date_time, pCO2_corr))+
+  geom_line()
 
 
+#### define response time parameters ####
+
+tau <- 55
+
+RT_corr <- function(c1, c0, dt, tau) {
+  (1/(2*(1+2*(tau/(dt))))) * (c1 - (1-(2*(1+2*(tau/(dt))))) * c0)
+}
+
+RT_corr(0,1,2,3)
+
+#### Apply RT correction ####
+
+HC <- HC %>% 
+  mutate(dt = as.numeric(as.character(date_time - lag(date_time))),
+         pCO2_RT = RT_corr(pCO2_corr, lag(pCO2_corr), dt, tau))
+
+HC %>% 
+  filter(date_time > ymd_hm("2018-07-10T1500"),
+         date_time < ymd_hm("2018-07-10T1600")) %>%
+  ggplot()+
+  geom_line(aes(date_time, pCO2_corr, col="raw"))+
+  geom_line(aes(date_time, pCO2_RT, col="RT_corr"))
 
 
 #### Subset and plot Zeroing data ####
