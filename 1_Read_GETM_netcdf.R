@@ -70,6 +70,81 @@ rm(E_sec_slice, E_sec_r, E_sec_r_df)
 }
 
 
+
+
+# Animation Section below Finnmaid --------------------------------------------------
+
+# read lon from old ncf file
+
+E_sec <- nc_open(here::here("Data/GETM", "Finnmaid.E.TSage.zax.nc"))
+lon <- ncvar_get(E_sec, "lonc")
+nc_close(E_sec) 
+rm(E_sec) 
+
+# read ncf file
+
+E_sec <- nc_open(here::here("Data/GETM", "2018_Finnmaid.E.TSage.zax.nc"))
+t <- ncvar_get(E_sec, "time")
+zax <- ncvar_get(E_sec, "zax")
+
+E_sec_array <- ncvar_get(E_sec, "temp") # store the data in a 3-dimensional array
+dim(E_sec_array) # should be 3d with dimensions: 1575 coordinate, 51 depth levels, 31 time steps
+
+fillvalue <- ncatt_get(E_sec, "temp", "_FillValue")
+nc_close(E_sec) 
+E_sec_array[E_sec_array == fillvalue$value] <- NA
+
+max_col <- max(E_sec_array, na.rm = TRUE)
+min_col <- min(E_sec_array, na.rm = TRUE)
+
+#i <- 3
+for (i in seq(1,length(t),1)){
+
+E_sec_slice <- E_sec_array[, , i] 
+E_sec_r <- raster(t(E_sec_slice), xmn=min(lon), xmx=max(lon), ymn=min(zax), ymx=max(zax))#,
+E_sec_r <- flip(E_sec_r, direction='y')
+
+date <- ymd_hms("2018-4-1 00:00:00")+t[i]
+head(date)
+
+E_sec_r_df <- as.data.frame(E_sec_r, xy=TRUE)
+
+E_sec_r_df <- E_sec_r_df %>% 
+  mutate(date = date)
+
+if (exists("ts", inherits = FALSE)){
+  ts <- bind_rows(ts, E_sec_r_df)
+} else{ts <- E_sec_r_df}
+
+rm(E_sec_slice, E_sec_r, E_sec_r_df)
+}
+
+rm(date)
+
+library(gganimate)
+length(unique(ts$date))
+
+animate(
+ts %>% 
+  #filter(date <= ymd("2018-04-04")) %>% 
+  ggplot() +
+  geom_raster(aes(x = x, y = -y, 
+                  fill = layer)) + 
+  scale_fill_viridis_c(name="SST (°C)",
+                       limits = c(min_col,max_col))+
+  scale_y_reverse()+
+  labs(x="Lon (°E)", y="Depth (m)", title = 'Date: {frame_time}')+
+  coord_cartesian(expand = 0)+
+  theme_bw()+
+  transition_time(date), nframes = length(unique(ts$date)))
+
+
+anim_save(here::here("Plots/GETM/Sections", "Temp_Route_E_2018.gif"),
+          animation = last_animation())
+
+
+
+
 # Vertical profiles in BloomSail Area -------------------------------------
 
 # read lon from old ncf file
@@ -166,16 +241,11 @@ ggsave(here::here("Plots/GETM/Profiles",
 # Read and plot timeseries data
 
 E_ts <- nc_open(here::here("Data/GETM", "2018_Finnmaid.E.2d.nc"))
-print(E_ts)
-
-lon <- ncvar_get(E_ts, "lonc")
 lat <- ncvar_get(E_ts, "latc", verbose = F)
 t <- ymd_hms("2018-4-1 00:00:00")+ncvar_get(E_ts, "time")
-SST <- ncvar_get(E_ts, "SST")
-
 head(t) # look at the first few entries in the time vector
 
-#var <- "mld_age_1"
+var <- "mld_age_1"
 for (var in c("SSS","SST","mld_age_1","mld_age_3","mld_age_5", "mld_rho","mld_tke")){
 
 E_ts_array <- ncvar_get(E_ts, var) # store the data in a 3-dimensional array
@@ -185,23 +255,21 @@ fillvalue <- ncatt_get(E_ts, var, "_FillValue")
 fillvalue
 #nc_close(E_ts)
 
-# Working with the data
-
 E_ts_array[E_ts_array == fillvalue$value] <- NA
 E_ts_array_r <- raster(t(E_ts_array), xmn=min(lat), xmx=max(lat), ymn=min(t), ymx=max(t))#,
 E_ts_array_r <- flip(E_ts_array_r, direction='y')
 
-# Plotting
 E_ts_array_r_df <- as.data.frame(E_ts_array_r, xy=TRUE)
 E_ts_array_r_df <- E_ts_array_r_df %>% 
   arrange(x,y) %>% 
-  mutate(y = rep(t, length(lon)))
+  mutate(y = rep(t, length(lat)))
 
 E_ts_array_r_df %>% 
-  filter(layer <= 30,
-         layer >= 0) %>% 
-  ggplot() +
-  geom_raster(aes(y, x, fill = layer)) + 
+  filter(layer <= 50,
+        layer >= 0) %>% 
+  ggplot(aes(y, x, fill = layer, z = layer)) +
+  geom_raster()+ 
+  #geom_contour(breaks = seq(0,100,10), col="white")+ 
   scale_fill_viridis_c(name=var, direction = -1)+
   labs(x="Date", y="Lat (°N)", title = paste("2018 | Finnmaid Route: E"))+
   theme_bw()+
@@ -243,13 +311,10 @@ fillvalue <- ncatt_get(E_ts, var, "_FillValue")
 fillvalue
 #nc_close(E_ts)
 
-#### Working with the data ####
-
 E_ts_array[E_ts_array == fillvalue$value] <- NA
 E_ts_array_r <- raster(t(E_ts_array), xmn=min(lat), xmx=max(lat), ymn=min(t), ymx=max(t))#,
 E_ts_array_r <- flip(E_ts_array_r, direction='y')
 
-#### Plotting #####
 E_ts_array_r_df <- as.data.frame(E_ts_array_r, xy=TRUE)
 
 temp <- E_ts_array_r_df %>% 
