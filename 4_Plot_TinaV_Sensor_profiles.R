@@ -5,7 +5,7 @@ library(here)
 
 #### Read summarized sensor data file ####
 
-Sensor <- read_csv(here("Data/_merged_data_files", "BloomSail_Sensor_HydroC_CT.csv"))
+Sensor <- read_csv(here::here("Data/_merged_data_files", "BloomSail_Sensor_HydroC_CT_O2.csv"))
 
 Sensor <- Sensor %>% 
   mutate(pCO2 = as.numeric(pCO2),
@@ -24,9 +24,10 @@ Sensor <- Sensor %>%
 Sensor_profile <- Sensor %>% 
   filter(type == "P")
 
+
 Sensor_profile_long <-
   Sensor_profile %>% 
-  select(date_time, ID, station, cast, dep,
+  dplyr::select(date_time, ID, station, cast, dep,
          Salinity = sal,
          "Temperature (deg C)" = tem,
          "pCO2 (uatm)" = pCO2,
@@ -46,6 +47,43 @@ Sensor_profile_long_mean <-
 
 
 #### Plot vertical Profiles ####
+
+Sensor_profile %>% 
+ggplot()+
+  geom_path(aes(tem, dep, col=ymd(ID), group=interaction(ID, station)))+
+  scale_y_reverse()+
+  scale_color_viridis_c(trans = "date", name="",
+                        limits = c(ymd("180601"), ymd("180831")))+
+  labs(y="Depth / m", x="Temperature / deg C")+
+  theme_bw()
+
+ggsave(here::here("/Plots/TinaV/Sensor", "BloomSail_Temp_profiles.jpg"),
+       width = 5, height = 5, dpi=300)
+
+Sensor_profile %>% 
+ggplot()+
+  geom_path(aes(tem, dep, col=ymd(ID), group=interaction(ID, station)))+
+  scale_y_reverse()+
+  scale_color_viridis_c(trans = "date", name="",
+                        limits = c(ymd("180601"), ymd("180831")))+
+  labs(y="Depth / m", x="Temperature / deg C")+
+  facet_wrap(~station)+
+  theme_bw()
+
+ggsave(here::here("/Plots/TinaV/Sensor", "BloomSail_Temp_profiles_by_station.jpg"),
+       width = 10, height = 10, dpi=300)
+
+
+Sensor_profile %>% 
+ggplot()+
+  geom_path(aes(tem, dep, col=station, group=interaction(ID, station)))+
+  scale_y_reverse()+
+  labs(y="Depth / m", x="Temperature / deg C")+
+  facet_wrap(~ID)+
+  theme_bw()
+
+ggsave(here::here("/Plots/TinaV/Sensor", "BloomSail_Temp_profiles_by_ID.jpg"),
+       width = 10, height = 10, dpi=300)
 
 
 Sensor_profile_long_mean %>% 
