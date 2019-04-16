@@ -11,7 +11,7 @@ library(zoo)
 Sensor <- read_csv(here::here("Data/_summarized_data_files", "Tina_V_Sensor_Profiles_Transects.csv")) %>% 
   mutate(pCO2 = as.numeric(pCO2))
 
-HC <- read_csv(here::here("Data/_summarized_data_files", "Tina_V_Sensor_HydroC.csv"))
+HC <- read_csv(here::here("Data/_summarized_data_files", "Tina_V_Sensor_HydroC_RTcorr.csv"))
 
 
 #### Merge Sensor and HydroC data ####
@@ -28,6 +28,7 @@ df <- full_join(Sensor, HC) %>%
 df <-
   df %>%
   mutate(pCO2_corr_int = na.approx(pCO2_corr, na.rm = FALSE),
+         pCO2_RT_int = na.approx(pCO2_RT, na.rm = FALSE),
          p_NDIR_int = na.approx(p_NDIR, na.rm = FALSE),
          T_gas_int = na.approx(T_gas, na.rm = FALSE)) %>% 
   fill(Flush, Zero) %>% 
@@ -43,8 +44,8 @@ df %>%
   filter(date_time>ymd_hm("2018-07-23T1630"),
          date_time<ymd_hm("2018-07-23T1930")) %>% 
   ggplot()+
-  geom_point(aes(date_time, pCO2_corr_int, col="corr_int"))+
-  geom_point(aes(date_time, pCO2, col="analog"))+
+  geom_point(aes(date_time, pCO2_RT_int, col="corr_int"))+
+  geom_point(aes(date_time, pCO2_corr_int, col="RT_int"))+
   scale_color_brewer(palette = "Set1", name="Dataset")+
   labs(x="Date",y="pCO2 (µatm)",
        title="pCO2 measurements analog output and post drift correction")
@@ -92,7 +93,7 @@ ggsave(here::here("Plots/TinaV/Sensor/HydroC_diagnostics", "Operation_mode_T_gas
 
 df <- df %>% 
   select(date_time, ID, type, station, cast, dep, sal, tem, pH, O2, Chl,
-         Zero, Flush, pCO2 = pCO2_corr_int)
+         Zero, Flush, pCO2 = pCO2_corr_int, pCO2_RT = pCO2_RT_int)
 
 
 write_csv(df, here::here("Data/_merged_data_files", "BloomSail_Sensor_HydroC.csv"))
