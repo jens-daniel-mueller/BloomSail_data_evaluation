@@ -15,18 +15,6 @@ track %>%
   geom_path()+
   geom_point(data=track_ref, aes(lon, lat), col="red")
 
-track_ref <-
-bind_rows(
-bind_cols(lon=19,    lat=57.425),
-bind_cols(lon=19.4,  lat=57.3),
-bind_cols(lon=19.54, lat=57.4),
-bind_cols(lon=19.18, lat=57.48)
-)
-
-
-track_ref <- track_ref %>% 
-  mutate(bearing)
-
 
 # # Plot Map with track data
 # 
