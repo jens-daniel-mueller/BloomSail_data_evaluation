@@ -6,7 +6,7 @@ library(lubridate)
 ### read GPX track from GPS Logger file ####
 
 
-setwd("C:/Mueller_Jens_Data/180530_BloomSail/BloomSail_data_evaluation/Data/Tina_V/Track/GPS_Logger_Track")
+setwd("C:/Mueller_Jens_Data/180530_BloomSail/BloomSail_data_evaluation/Data/TinaV/Track/GPS_Logger_Track")
 files <- list.files(pattern = "[.]txt$")
 
 
@@ -44,5 +44,5 @@ track %>%
   geom_path()
 
 
-setwd("C:/Mueller_Jens_Data/180530_BloomSail/BloomSail_data_evaluation/Data/Summarized_data_files")
-write.csv(track, "Tina_V_Track.csv", row.names = FALSE)
+setwd("C:/Mueller_Jens_Data/180530_BloomSail/BloomSail_data_evaluation/Data/_summarized_data_files")
+write.csv(track, "TinaV_Track.csv", row.names = FALSE)
