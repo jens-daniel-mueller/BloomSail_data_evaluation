@@ -36,10 +36,10 @@ for (i in seq(1,steps,1)) {
 
 rm(end, start, bearing, i, lat, lon, steps)
 
-track %>%
-  ggplot(aes(lon, lat))+
-  geom_path()+
-  geom_point(data = track_ref_S, aes(lon, lat), col="red")
+# track %>%
+#   ggplot(aes(lon, lat))+
+#   geom_path()+
+#   geom_point(data = track_ref_S, aes(lon, lat, col="S"))
 
 # Reference track east ---------------------------------------------------
 
@@ -63,11 +63,11 @@ for (i in seq(1,steps,1)) {
   
 }
 
-track %>%
-  ggplot(aes(lon, lat))+
-  geom_path()+
-  geom_point(data = track_ref_S, aes(lon, lat), col="red")+
-  geom_point(data = track_ref_E, aes(lon, lat), col="red")
+# track %>%
+#   ggplot(aes(lon, lat))+
+#   geom_path()+
+#   geom_point(data = track_ref_S, aes(lon, lat, col="S"))+
+#   geom_point(data = track_ref_E, aes(lon, lat, col="E"))
 
 
 # Reference track north ---------------------------------------------------
@@ -92,13 +92,12 @@ for (i in seq(1,steps,1)) {
   
 }
 
-track %>%
-  ggplot(aes(lon, lat))+
-  geom_path()+
-  geom_point(data = track_ref_S, aes(lon, lat), col="red")+
-  geom_point(data = track_ref_N, aes(lon, lat), col="red")+
-  geom_point(data = track_ref_E, aes(lon, lat), col="red")
-
+# track %>%
+#   ggplot(aes(lon, lat))+
+#   geom_path()+
+#   geom_point(data = track_ref_S, aes(lon, lat, col="S"))+
+#   geom_point(data = track_ref_E, aes(lon, lat, col="E"))+
+#   geom_point(data = track_ref_N, aes(lon, lat, col="N"))
 
 # Reference track West ---------------------------------------------------
 
@@ -110,11 +109,11 @@ bearing = bearing(track_ref_W, end)
 
 for (i in seq(1,steps,1)) {
   
-  lon = destPoint(p = slice( track_ref_N, n()), b = bearing, d = 2000)[,1]
-  lat = destPoint(p = slice( track_ref_N, n()), b = bearing, d = 2000)[,2]
+  lon = destPoint(p = slice( track_ref_W, n()), b = bearing, d = 2000)[,1]
+  lat = destPoint(p = slice( track_ref_W, n()), b = bearing, d = 2000)[,2]
   
-  track_ref_N <-
-    bind_rows(track_ref_N,
+  track_ref_W <-
+    bind_rows(track_ref_W,
               bind_cols(lon=lon, lat=lat)
     )
   
@@ -125,24 +124,31 @@ for (i in seq(1,steps,1)) {
 track %>%
   ggplot(aes(lon, lat))+
   geom_path()+
-  geom_point(data = track_ref_S, aes(lon, lat), col="red")+
-  geom_point(data = track_ref_N, aes(lon, lat), col="red")+
-  geom_point(data = track_ref_W, aes(lon, lat), col="red")+
-  geom_point(data = track_ref_E, aes(lon, lat), col="red")
+  geom_point(data = track_ref_S, aes(lon, lat, col="S"))+
+  geom_point(data = track_ref_E, aes(lon, lat, col="E"))+
+  geom_point(data = track_ref_N, aes(lon, lat, col="N"))+
+  geom_point(data = track_ref_W, aes(lon, lat, col="W"))
+  
+
+
 
 transect_GETM <- bind_rows(
-  track_ref_E, track_ref_N, track_ref_S, track_ref_W
+  slice(track_ref_S, 1:(n()-1)),
+  slice(track_ref_E, 1:(n()-1)),
+  slice(track_ref_N, 1:(n()-1)),
+  track_ref_W
 )
 
-transect_GETM <- distinct(transect_GETM)
+transect_GETM <- bind_cols(transect_GETM, dist=seq(0,2*nrow(transect_GETM)-2,2))
+
 
 track %>% 
-  ggplot(aes(lon, lat, col="BloomSail Track"))+
+  ggplot(aes(lon, lat))+
   geom_raster(data=df.map, aes(lon, lat, fill=elev))+
   scale_fill_scico(palette = "oslo", na.value = "black", name="Depth [m]")+
-  geom_path()+
-  geom_point(data = transect_GETM, aes(lon, lat, col="GETM track | 2km"))+
-  scale_color_manual(values = c("orange", "red"), name="")+
+  geom_path(col="grey")+
+  geom_point(data = transect_GETM, aes(lon, lat, col=dist))+
+  scale_color_viridis_c()+
   coord_quickmap(expand = 0)+
   theme_bw()
 
