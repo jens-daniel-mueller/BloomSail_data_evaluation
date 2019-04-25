@@ -59,7 +59,7 @@ raw <- raw %>%
 #### Read Contros corrected data file ####
 
 corr <-
-  read_csv2(here("Data/TinaV/Sensor/HydroC-pCO2/corrected_Contros",
+  read_csv2(here::here("Data/TinaV/Sensor/HydroC-pCO2/corrected_Contros",
                  "parameter&pCO2s(method 43).txt"),
             col_names = c("date_time", "Zero", "Flush", "p_NDIR",
                           "p_in", "T_control", "T_gas", "%rH_gas",
@@ -155,7 +155,7 @@ corr <- corr %>%
 
 #### Safe Contros corrected data file ####
 
-write_csv(corr, here("Data/_summarized_data_files",
+write_csv(corr, here::here("Data/_summarized_data_files",
                      "Tina_V_Sensor_HydroC.csv"))
 
 
