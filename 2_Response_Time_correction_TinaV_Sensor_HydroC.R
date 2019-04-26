@@ -91,12 +91,13 @@ HC <- HC %>%
 
 # Define functions and window width for rolling mean
 window <- 15
-rolling_mean   <- rollify(mean, window = window)
-rolling_median <- rollify(median, window = window)
+rolling_mean   <- rollify(~mean(.x, na.rm = TRUE), window = window)
+rolling_median <- rollify(~median(.x, na.rm = TRUE), window = window)
 
 HC <- HC %>%
   group_by(deployment) %>% 
   mutate(pCO2_RT = RT_corr(pCO2, lag(pCO2), dt, tau),
+         pCO2_RT = if_else(pCO2_RT %in% c(Inf, -Inf), NaN, pCO2_RT),
          pCO2_RT_mean = rolling_mean(pCO2_RT),
          pCO2_RT_median = rolling_median(pCO2_RT)) %>% 
   ungroup()
@@ -111,6 +112,9 @@ rm(rolling_median, rolling_mean, shift)
       
 
 unique(HC$deployment)
+
+HC %>% 
+  filter(pCO2_RT_mean == Inf)
 
 HC %>% 
   filter(deployment == unique(HC$deployment)[8]) %>% 
