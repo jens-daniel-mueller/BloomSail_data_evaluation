@@ -45,10 +45,10 @@ df <- df %>%
 
 # Subset deployment 29 for high resolution response time determination
 
-df %>% 
-  filter(deployment == 29) %>% 
-  write_csv(here::here("Data/_summarized_data_files",
-                       "Tina_V_Sensor_HydroC_RT-experiment_29.csv"))
+# df %>% 
+#   filter(deployment == 29) %>% 
+#   write_csv(here::here("Data/_summarized_data_files",
+#                        "Tina_V_Sensor_HydroC_RT-experiment_29.csv"))
 
 df <- df %>% 
   filter(deployment %in% c(2,6,9,14,17,21,23,27,31,33,34,35,37))
@@ -57,16 +57,37 @@ df <- df %>%
 
 # Identify and label zeroing and flush periods ----------------------------
 
+# df <- df %>% 
+#   group_by(Flush, Zero) %>% 
+#   mutate(FlushZeroID = as.factor(cumsum(c(TRUE,diff(date_time)>=30)))) %>% 
+#   ungroup()
+  
 df <- df %>% 
-  group_by(Flush, Zero) %>% 
+  group_by(Zero) %>% 
   mutate(FlushZeroID = as.factor(cumsum(c(TRUE,diff(date_time)>=30)))) %>% 
   ungroup()
   
 
+# Flush <- df %>% 
+#   filter(Zero == 0) %>% 
+#   group_by(FlushZeroID) %>% 
+#   slice(1:200) %>% 
+#   ungroup()
+
+Flush <- df %>% 
+  filter(Zero == 0) %>% 
+  group_by(FlushZeroID) %>% 
+  mutate(start = min(date_time),
+         duration = date_time - start,
+         mixing = if_else(duration < 20, "mixing", "equilibration")) %>% 
+  filter(duration <= 300) %>% 
+  ungroup()
+
+
 # for (i in unique(df$deployment)) {
 # 
 #   df %>%
-#     filter(deployment == i, Zero == 1) %>% 
+#     filter(deployment == i, Zero == 1) %>%
 #     ggplot(aes(date_time, pCO2_corr, col=FlushZeroID))+
 #     geom_point()
 # 
@@ -78,12 +99,25 @@ df <- df %>%
 
 # for (i in unique(df$deployment)) {
 # 
-#   df %>%
-#     filter(deployment == i, Flush == 1) %>%
+#   Flush %>%
+#     filter(deployment == i) %>%
 #     ggplot(aes(date_time, pCO2_corr, col=FlushZeroID))+
 #     geom_point()
 # 
 #   ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Flush", paste(i,"_deployment_HydroC_flush.jpg", sep="")),
+#          width = 10, height = 4)
+# 
+# }
+
+# for (i in unique(df$FlushZeroID)) {
+# 
+#   Flush %>%
+#     filter(FlushZeroID == i) %>%
+#     ggplot(aes(date_time, pCO2_corr, col=mixing))+
+#     geom_point() +
+#     scale_color_brewer(palette = "Set1")
+# 
+#   ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Flush/individual", paste(i,"_FlushZeroID_HydroC_flush.jpg", sep="")),
 #          width = 10, height = 4)
 # 
 # }
@@ -93,7 +127,7 @@ df <- df %>%
 # for (i in unique(df$deployment)) {
 # 
 #   df %>%
-#     filter(deployment == i, Zero == 0, Flush == 0) %>%
+#     filter(deployment == i, Zero == 0) %>%
 #     ggplot(aes(date_time, pCO2_corr, col=FlushZeroID))+
 #     geom_line()
 # 
@@ -108,6 +142,9 @@ df <- df %>%
 
 write_csv(df, here::here("Data/_summarized_data_files",
                            "Tina_V_Sensor_HydroC.csv"))
+
+write_csv(Flush, here::here("Data/_summarized_data_files",
+                           "Tina_V_Sensor_HydroC_Flush.csv"))
 
 
 
