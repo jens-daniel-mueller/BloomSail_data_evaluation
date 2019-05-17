@@ -1,21 +1,27 @@
 # Packages ----------------------------------------------------------------
 
 library(tidyverse)
-library(here)
 library(lubridate)
 library(tibbletime)
-
 
 # Load Contros corrected data set -----------------------------------------
 
 HC <- read_csv(here::here("Data/_summarized_data_files", "Tina_V_Sensor_HydroC.csv"))
-
 
 # Identify deployments and remove irrelevant data -------------------------
 
 HC <- HC %>% 
   mutate(deployment = cumsum(c(TRUE,diff(date_time)>=30)),
          week = week(date_time))
+
+HC_test <- HC %>% 
+  filter(Flush == 1) %>% 
+  mutate(deployment = cumsum(c(TRUE,diff(date_time)>=30)))
+
+HC.test %>% 
+  ggplot(aes(date_time, pCO2_corr))+
+  geom_point()+
+  facet_wrap(~deployment, scales = "free")
 
 #i <- unique(HC$week)[1]
 # for (i in unique(HC$week)) {
