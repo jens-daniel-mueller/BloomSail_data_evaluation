@@ -7,8 +7,8 @@ library(zoo)
 
 # Load Sensor and RT corrected HydroC data --------------------------------
 
-Sensor <- read_csv(here::here("Data/_summarized_data_files", "Tina_V_Sensor_Profiles_Transects.csv")) %>% 
-  mutate(pCO2 = as.numeric(pCO2))
+Sensor <- read_csv(here::here("Data/_summarized_data_files", "Tina_V_Sensor_Profiles_Transects.csv"),
+                   col_types = list("pCO2" = col_double()))
 
 Sensor <- Sensor %>% 
   rename(pCO2_analog = pCO2)
@@ -38,7 +38,8 @@ df_HC <-
   df %>%
   mutate(dep_int = na.approx(dep, na.rm = FALSE, maxgap = 30),
          sal_int = na.approx(sal, na.rm = FALSE, maxgap = 30),
-         tem_int = na.approx(tem, na.rm = FALSE, maxgap = 30)) %>% 
+         tem_int = na.approx(tem, na.rm = FALSE, maxgap = 30),
+         pCO2_analog_int = na.approx(pCO2_analog, na.rm = FALSE, maxgap = 30)) %>% 
   fill(ID, type, station, cast) %>% 
   filter(!is.na(pCO2),
          !is.na(dep_int)) 
@@ -61,18 +62,29 @@ df_HC %>%
   scale_y_reverse()
 
 
-# for (i in seq(2, length(unique(df_HC$deployment)),1)) {
-# 
-# df_HC %>% 
-#   filter(deployment == unique(df_HC$deployment)[i]) %>% 
+i <- 7
+for (i in seq(2, length(unique(df_HC$deployment)),1)) {
+
+# df_HC %>%
+#   filter(deployment == unique(df_HC$deployment)[i]) %>%
 #   ggplot()+
 #   geom_point(aes(date_time, pCO2))+
 #   geom_point(aes(date_time, tem_int, col=station))
 # 
 #   ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics", paste(i,"_deployment_HydroC_Sensor_timeseries.jpg", sep="")),
 #                   width = 8, height = 4)
-#   
-# }
+
+  df_HC %>%
+  filter(deployment == unique(df_HC$deployment)[i],
+         Zero == 1) %>%
+  ggplot()+
+  geom_point(aes(date_time, pCO2_analog, col="analog"))+
+  geom_point(aes(date_time, pCO2, col="HC"))
+
+  ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics", paste(i,"_deployment_HydroC_Sensor_Zeroings.jpg", sep="")),
+                  width = 8, height = 4)
+
+}
 
 
 
