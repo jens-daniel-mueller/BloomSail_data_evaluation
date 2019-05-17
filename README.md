@@ -31,7 +31,8 @@ Data are stored in a folder "Data", which is not synchronized with this repo bef
   + postprocessed (drift corrected) data set provided by KM Contros
   + deployment periods identified
   + test and handling deployments removed
-  + 
+  + Flush periods identified as post-zeroing phase
+  + Response time determined for each Flush period
 
 
 
