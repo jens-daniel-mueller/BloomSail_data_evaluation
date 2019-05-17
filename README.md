@@ -24,3 +24,16 @@ Data are stored in a folder "Data", which is not synchronized with this repo bef
 3) Merging summarized data sets and writing into folder "Data/_merged_data_files".
 
 4) Plot results
+
+# Status by parameter
+
+* pCO2
+  + postprocessed (drift corrected) data set provided by KM Contros
+  + deployment periods identified
+  + test and handling deployments removed
+  + 
+
+
+
+
+
