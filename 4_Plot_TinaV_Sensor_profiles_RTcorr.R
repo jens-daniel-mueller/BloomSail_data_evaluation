@@ -10,7 +10,9 @@ Sensor <- read_csv(here::here("Data/_merged_data_files", "BloomSail_Sensor_Hydro
 
 Sensor <- Sensor %>% 
   mutate(ID = as.factor(ID)) %>% 
-  filter(!(station %in% c("PX1", "PX2")))
+  filter(!(station %in% c("PX1", "PX2")),
+         Zero != 1,
+         Flush != 1)
 
 #### Plot vertical profiles ####
 
@@ -99,8 +101,8 @@ ggsave(here::here("/Plots/TinaV/Sensor/all_profiles_RT", str_c(i_ID,"_",i_statio
 
 
 
-i_ID <- unique(Sensor$ID)[6]
-i_station <- unique(Sensor$station)[10]
+# i_ID <- unique(Sensor$ID)[6]
+# i_station <- unique(Sensor$station)[10]
 
 for(i_ID in unique(Sensor$ID)){
   for(i_station in unique(Sensor$station)){
