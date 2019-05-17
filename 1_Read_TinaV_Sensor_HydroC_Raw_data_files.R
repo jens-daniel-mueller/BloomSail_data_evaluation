@@ -1,35 +1,140 @@
-#### Load required packages ####
+# Packages ----------------------------------------------------------------
 
 library(tidyverse)
 library(lubridate)
-library(here)
-library(plotly)
+
+# Read Contros corrected data file ----------------------------------------
+
+df <-
+  read_csv2(here::here("Data/TinaV/Sensor/HydroC-pCO2/corrected_Contros",
+                       "parameter&pCO2s(method 43).txt"),
+            col_names = c("date_time", "Zero", "Flush", "p_NDIR",
+                          "p_in", "T_control", "T_gas", "%rH_gas",
+                          "Signal_raw", "Signal_ref", "T_sensor",
+                          "pCO2_corr", "Runtime", "nr.ave"))
 
 
-#### Read data file as downloaded from HydroC ####
+# Identify and select deployment periods ----------------------------------
 
-setwd("C:/Mueller_Jens_Data/180530_BloomSail/BloomSail_data_evaluation/Data/TinaV/Sensor/HydroC-pCO2")
-files <- list.files(pattern = "*.txt")
-
-raw <- files %>%
-  map(read.delim, sep=";", dec=",", skip=4, col.names = seq(1,23,1),
-      colClasses = c(rep("character",2), rep("numeric", 21))) %>%
-  reduce(rbind) %>%
-  select(seq(1,22,1))
-
-rm(files)
-
-names(raw) <- c("Date",	"Time",	"Weekday",	"P_pump",
-           "p_NDIR",	"p_in",	"I_total",	"U_supply",
-          "Zero",	"Flush", "external_pump",	"Runtime",
-          "Signal_raw",	"Signal_ref",	"T_sensor",
-          "Signal_proc",	"Conc_estimate",	"pCO2_corr",
-          "xCO2_corr",	"T_control",	"T_gas",	"%rH_gas")
-
-raw <- raw %>%
-  mutate(date_time = ymd_hms(paste(Date, Time)))
+df <- df %>% 
+  mutate(date_time = dmy_hms(date_time),
+         deployment = cumsum(c(TRUE,diff(date_time)>=30)))
 
 
+# #i <- unique(df$deployment)[1]
+# for (i in unique(df$deployment)) {
+# 
+#   df %>%
+#     filter(deployment == i) %>%
+#     ggplot(aes(date_time, pCO2_corr, col=as.factor(deployment)))+
+#     geom_line()
+# 
+#   ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Deployments", paste(i,"_deployment_HydroC_timeseries.jpg", sep="")),
+#          width = 15, height = 4)
+# 
+# }
+# 
+# df %>%
+#   ggplot(aes(date_time, pCO2_corr, col=as.factor(deployment)))+
+#   geom_line()
+# 
+# ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Deployments", "all_deployment_HydroC_timeseries.jpg"),
+#        width = 40, height = 4)
+
+
+
+# Subset deployment 29 for high resolution response time determination
+
+df %>% 
+  filter(deployment == 29) %>% 
+  write_csv(here::here("Data/_summarized_data_files",
+                       "Tina_V_Sensor_HydroC_RT-experiment_29.csv"))
+
+df <- df %>% 
+  filter(deployment %in% c(2,6,9,14,17,21,23,27,31,33,34,35,37))
+         
+
+
+# Identify and label zeroing and flush periods ----------------------------
+
+df <- df %>% 
+  group_by(Flush, Zero) %>% 
+  mutate(FlushZeroID = as.factor(cumsum(c(TRUE,diff(date_time)>=30)))) %>% 
+  ungroup()
+  
+
+# for (i in unique(df$deployment)) {
+# 
+#   df %>%
+#     filter(deployment == i, Zero == 1) %>% 
+#     ggplot(aes(date_time, pCO2_corr, col=FlushZeroID))+
+#     geom_point()
+# 
+#   ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Zeroings", paste(i,"_deployment_HydroC_zeroings.jpg", sep="")),
+#          width = 10, height = 4)
+# 
+# }
+
+
+# for (i in unique(df$deployment)) {
+# 
+#   df %>%
+#     filter(deployment == i, Flush == 1) %>%
+#     ggplot(aes(date_time, pCO2_corr, col=FlushZeroID))+
+#     geom_point()
+# 
+#   ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Flush", paste(i,"_deployment_HydroC_flush.jpg", sep="")),
+#          width = 10, height = 4)
+# 
+# }
+
+
+# #i <- unique(df$deployment)[1]
+# for (i in unique(df$deployment)) {
+# 
+#   df %>%
+#     filter(deployment == i, Zero == 0, Flush == 0) %>%
+#     ggplot(aes(date_time, pCO2_corr, col=FlushZeroID))+
+#     geom_line()
+# 
+#   ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Deployments_clean", paste(i,"_deployment_only_HydroC_timeseries.jpg", sep="")),
+#          width = 15, height = 4)
+# 
+# }
+
+
+
+# Write summarized data file ----------------------------------------------
+
+write_csv(df, here::here("Data/_summarized_data_files",
+                           "Tina_V_Sensor_HydroC.csv"))
+
+
+
+# #### Read data file as downloaded from HydroC ####
+# 
+# setwd("C:/Mueller_Jens_Data/180530_BloomSail/BloomSail_data_evaluation/Data/TinaV/Sensor/HydroC-pCO2")
+# files <- list.files(pattern = "*.txt")
+# 
+# raw <- files %>%
+#   map(read.delim, sep=";", dec=",", skip=4, col.names = seq(1,23,1),
+#       colClasses = c(rep("character",2), rep("numeric", 21))) %>%
+#   reduce(rbind) %>%
+#   select(seq(1,22,1))
+# 
+# rm(files)
+# 
+# names(raw) <- c("Date",	"Time",	"Weekday",	"P_pump",
+#            "p_NDIR",	"p_in",	"I_total",	"U_supply",
+#           "Zero",	"Flush", "external_pump",	"Runtime",
+#           "Signal_raw",	"Signal_ref",	"T_sensor",
+#           "Signal_proc",	"Conc_estimate",	"pCO2_corr",
+#           "xCO2_corr",	"T_control",	"T_gas",	"%rH_gas")
+# 
+# raw <- raw %>%
+#   mutate(date_time = ymd_hms(paste(Date, Time)))
+# 
+# 
 # #### Check logging frequency and pump switch from Seabird XX? (Power ~1W) to 5T (Power ~8W) ####
 # 
 # test <- raw %>%
@@ -55,19 +160,6 @@ raw <- raw %>%
 #   geom_point()+
 #   ylim(0,20)
 
-
-#### Read Contros corrected data file ####
-
-corr <-
-  read_csv2(here::here("Data/TinaV/Sensor/HydroC-pCO2/corrected_Contros",
-                 "parameter&pCO2s(method 43).txt"),
-            col_names = c("date_time", "Zero", "Flush", "p_NDIR",
-                          "p_in", "T_control", "T_gas", "%rH_gas",
-                          "Signal_raw", "Signal_ref", "T_sensor",
-                          "pCO2_corr", "Runtime", "nr.ave"))
-                      
-corr <- corr %>% 
-  mutate(date_time = dmy_hms(date_time))
 
 
 
