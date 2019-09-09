@@ -13,23 +13,24 @@ df <-
                           "Signal_raw", "Signal_ref", "T_sensor",
                           "pCO2_corr", "Runtime", "nr.ave"))
 
-
-# Identify and select deployment periods ----------------------------------
+# Deployments: Identification ---------------------------------------------
 
 df <- df %>% 
   mutate(date_time = dmy_hms(date_time),
          deployment = cumsum(c(TRUE,diff(date_time)>=30)))
 
 
-# #i <- unique(df$deployment)[1]
+# Deployments: Plots ------------------------------------------------------
+
 # for (i in unique(df$deployment)) {
 # 
 #   df %>%
 #     filter(deployment == i) %>%
-#     ggplot(aes(date_time, pCO2_corr, col=as.factor(deployment)))+
+#     ggplot(aes(date_time, pCO2_corr, col=as.factor(Zero)))+
 #     geom_line()
 # 
-#   ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Deployments", paste(i,"_deployment_HydroC_timeseries.jpg", sep="")),
+#   ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Deployments",
+#                     paste(i,"_deployment_HydroC_timeseries.jpg", sep="")),
 #          width = 15, height = 4)
 # 
 # }
@@ -38,41 +39,37 @@ df <- df %>%
 #   ggplot(aes(date_time, pCO2_corr, col=as.factor(deployment)))+
 #   geom_line()
 # 
-# ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Deployments", "all_deployment_HydroC_timeseries.jpg"),
+# ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Deployments",
+#                   "all_deployment_HydroC_timeseries.jpg"),
 #        width = 40, height = 4)
 
 
 
+
+# Deployments: Subset relevant periods ------------------------------------
+
 # Subset deployment 29 for high resolution response time determination
 
-# df %>% 
-#   filter(deployment == 29) %>% 
+# df %>%
+#   filter(deployment == 29) %>%
 #   write_csv(here::here("Data/_summarized_data_files",
 #                        "Tina_V_Sensor_HydroC_RT-experiment_29.csv"))
 
 df <- df %>% 
-  filter(deployment %in% c(2,6,9,14,17,21,23,27,31,33,34,35,37))
+  filter(deployment %in% c(2,6,9,14,17,21,23,27,29,31,33,34,35,37))
          
 
 
-# Identify and label zeroing and flush periods ----------------------------
+# Zeroing and flush period labelling --------------------------------------
 
-# df <- df %>% 
-#   group_by(Flush, Zero) %>% 
-#   mutate(FlushZeroID = as.factor(cumsum(c(TRUE,diff(date_time)>=30)))) %>% 
-#   ungroup()
-  
 df <- df %>% 
   group_by(Zero) %>% 
   mutate(FlushZeroID = as.factor(cumsum(c(TRUE,diff(date_time)>=30)))) %>% 
   ungroup()
   
 
-# Flush <- df %>% 
-#   filter(Zero == 0) %>% 
-#   group_by(FlushZeroID) %>% 
-#   slice(1:200) %>% 
-#   ungroup()
+
+#  Flush: Seperate equilibration from internal gas mixing period ----------
 
 Flush <- df %>% 
   filter(Zero == 0) %>% 
@@ -84,30 +81,8 @@ Flush <- df %>%
   ungroup()
 
 
-# for (i in unique(df$deployment)) {
-# 
-#   df %>%
-#     filter(deployment == i, Zero == 1) %>%
-#     ggplot(aes(date_time, pCO2_corr, col=FlushZeroID))+
-#     geom_point()
-# 
-#   ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Zeroings", paste(i,"_deployment_HydroC_zeroings.jpg", sep="")),
-#          width = 10, height = 4)
-# 
-# }
 
-
-# for (i in unique(df$deployment)) {
-# 
-#   Flush %>%
-#     filter(deployment == i) %>%
-#     ggplot(aes(date_time, pCO2_corr, col=FlushZeroID))+
-#     geom_point()
-# 
-#   ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Flush", paste(i,"_deployment_HydroC_flush.jpg", sep="")),
-#          width = 10, height = 4)
-# 
-# }
+# Flush: Plot individual periods ------------------------------------------
 
 # for (i in unique(df$FlushZeroID)) {
 # 
@@ -117,35 +92,55 @@ Flush <- df %>%
 #     geom_point() +
 #     scale_color_brewer(palette = "Set1")
 # 
-#   ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Flush/individual", paste(i,"_FlushZeroID_HydroC_flush.jpg", sep="")),
+#   ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Flush", paste(i,"_FlushZeroID_HydroC_flush.jpg", sep="")),
 #          width = 10, height = 4)
 # 
 # }
 
 
-# #i <- unique(df$deployment)[1]
-# for (i in unique(df$deployment)) {
-# 
-#   df %>%
-#     filter(deployment == i, Zero == 0) %>%
-#     ggplot(aes(date_time, pCO2_corr, col=FlushZeroID))+
-#     geom_line()
-# 
-#   ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Deployments_clean", paste(i,"_deployment_only_HydroC_timeseries.jpg", sep="")),
-#          width = 15, height = 4)
-# 
-# }
+# Clean measurement period without Zero/Flush -----------------------------
 
+df_clean <- df %>% 
+  filter(Zero == 0) %>% 
+  group_by(FlushZeroID) %>% 
+  mutate(start = min(date_time),
+         duration = date_time - start,
+         Flush = if_else(duration <= 600, "1", "0")) %>% 
+  ungroup() %>% 
+  filter(Flush == 0) %>% 
+  select(-c(start, duration))
+
+
+# Clean data: Plot deployments --------------------------------------------
+
+for (i in unique(df$deployment)) {
+
+  df_clean %>%
+    filter(deployment == i) %>%
+    ggplot(aes(date_time, pCO2_corr))+
+    geom_line()
+
+  ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Deployments_clean", paste(i,"_deployment_only_HydroC_timeseries.jpg", sep="")),
+         width = 15, height = 4)
+
+}
 
 
 # Write summarized data file ----------------------------------------------
 
-write_csv(df, here::here("Data/_summarized_data_files",
+write_csv(df_clean, here::here("Data/_summarized_data_files",
                            "Tina_V_Sensor_HydroC.csv"))
 
 write_csv(Flush, here::here("Data/_summarized_data_files",
                            "Tina_V_Sensor_HydroC_Flush.csv"))
 
+
+
+# X -----------------------------------------------------------------------
+# X -----------------------------------------------------------------------
+# Old script parts --------------------------------------------------------
+# X -----------------------------------------------------------------------
+# X -----------------------------------------------------------------------
 
 
 # #### Read data file as downloaded from HydroC ####
@@ -277,15 +272,15 @@ write_csv(Flush, here::here("Data/_summarized_data_files",
 # 
 # ggsave(here("Plots/TinaV/Sensor/HydroC_diagnostics", "pCO2_offset.jpg"),
 #        width = 10, height = 6)
-
-#### Determine Pump switch ####
-
-
-
-#### Safe Contros corrected data file ####
-
-write_csv(corr, here::here("Data/_summarized_data_files",
-                     "Tina_V_Sensor_HydroC.csv"))
+# 
+# #### Determine Pump switch ####
+# 
+# 
+# 
+# #### Safe Contros corrected data file ####
+# 
+# write_csv(corr, here::here("Data/_summarized_data_files",
+#                      "Tina_V_Sensor_HydroC.csv"))
 
 
 

@@ -1,14 +1,14 @@
 #### Load required libraries ####
 
 library(tidyverse)
-library(here)
 library(seacarb)
 library(marelac)
 
 #### Load summarized Sensor and HydroC Data ####
 
-Sensor <- read_csv(here::here("Data/_merged_data_files", "BloomSail_Sensor_HydroC.csv")) %>% 
-  mutate(pCO2 = as.numeric(pCO2))
+Sensor <- read_csv(here::here("Data/_merged_data_files", "BloomSail_Sensor_HydroC.csv"),
+                   col_types = list("pCO2_int" = col_double())) %>% 
+  mutate(pCO2 = as.numeric(pCO2_int))
 
 
 ####calcualte CT* based on measured pCO2, S, and T, as well as the Alkalinity
@@ -54,6 +54,7 @@ df %>%
 source("O2stoO2c.R")
 
 Sensor_O2 <- Sensor %>%
+  mutate(O2 = as.numeric(O2)) %>% 
   filter(!is.na(tem),
          !is.na(sal),
          !is.na(O2)) %>% 
