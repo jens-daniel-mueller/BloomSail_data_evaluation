@@ -11,7 +11,9 @@ df <-
             col_names = c("date_time", "Zero", "Flush", "p_NDIR",
                           "p_in", "T_control", "T_gas", "%rH_gas",
                           "Signal_raw", "Signal_ref", "T_sensor",
-                          "pCO2_corr", "Runtime", "nr.ave"))
+                          "pCO2_corr", "Runtime", "nr.ave")) %>% 
+  mutate(Flush = as.factor(as.character(Flush)),
+         Zero = as.factor(as.character(Zero)))
 
 # Deployments: Identification ---------------------------------------------
 
@@ -59,65 +61,55 @@ df <- df %>%
   filter(deployment %in% c(2,6,9,14,17,21,23,27,29,31,33,34,35,37))
          
 
-
-# Zeroing and flush period labelling --------------------------------------
+# Zeroing ID labelling ----------------------------------------------------
 
 df <- df %>% 
   group_by(Zero) %>% 
-  mutate(FlushZeroID = as.factor(cumsum(c(TRUE,diff(date_time)>=30)))) %>% 
+  mutate(Zero_ID = as.factor(cumsum(c(TRUE,diff(date_time)>=30)))) %>% 
   ungroup()
-  
 
 
-#  Flush: Seperate equilibration from internal gas mixing period ----------
+# Flush: Identification ---------------------------------------------------
 
-Flush <- df %>% 
-  filter(Zero == 0) %>% 
-  group_by(FlushZeroID) %>% 
+df <- df %>% 
+  mutate(Flush = 0) %>% 
+  group_by(Zero, Zero_ID) %>% 
   mutate(start = min(date_time),
          duration = date_time - start,
-         mixing = if_else(duration < 20, "mixing", "equilibration")) %>% 
-  filter(duration <= 300) %>% 
+         Flush = if_else(Zero == 0 & duration < 300, "1", "0")) %>% 
   ungroup()
 
+
+#  Flush: Identify equilibration and internal gas mixing periods ----------
+
+Flush <- df %>% 
+  filter(Flush == 1) %>% 
+  mutate( mixing = if_else(duration < 20, "mixing", "equilibration"))
 
 
 # Flush: Plot individual periods ------------------------------------------
 
-# for (i in unique(df$FlushZeroID)) {
+# for (i in unique(df$Zero_ID)) {
 # 
 #   Flush %>%
-#     filter(FlushZeroID == i) %>%
+#     filter(Zero_ID == i) %>%
 #     ggplot(aes(date_time, pCO2_corr, col=mixing))+
 #     geom_point() +
 #     scale_color_brewer(palette = "Set1")
 # 
-#   ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Flush", paste(i,"_FlushZeroID_HydroC_flush.jpg", sep="")),
+#   ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Flush", paste(i,"_Zero_ID_HydroC_flush.jpg", sep="")),
 #          width = 10, height = 4)
 # 
 # }
-
-
-# Clean measurement period without Zero/Flush -----------------------------
-
-df_clean <- df %>% 
-  filter(Zero == 0) %>% 
-  group_by(FlushZeroID) %>% 
-  mutate(start = min(date_time),
-         duration = date_time - start,
-         Flush = if_else(duration <= 600, "1", "0")) %>% 
-  ungroup() %>% 
-  filter(Flush == 0) %>% 
-  select(-c(start, duration))
 
 
 # Clean data: Plot deployments --------------------------------------------
 
 for (i in unique(df$deployment)) {
 
-  df_clean %>%
-    filter(deployment == i) %>%
-    ggplot(aes(date_time, pCO2_corr))+
+  df %>%
+    filter(Zero ==0, Flush == 0, deployment == i) %>%
+    ggplot(aes(date_time, pCO2_corr, col=Zero_ID))+
     geom_line()
 
   ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Deployments_clean", paste(i,"_deployment_only_HydroC_timeseries.jpg", sep="")),
@@ -126,13 +118,15 @@ for (i in unique(df$deployment)) {
 }
 
 
-# Write summarized data file ----------------------------------------------
+# Write summarized data files ----------------------------------------------
 
-write_csv(df_clean, here::here("Data/_summarized_data_files",
-                           "Tina_V_Sensor_HydroC.csv"))
+df %>% 
+  write_csv(here::here("Data/_summarized_data_files",
+                       "Tina_V_Sensor_HydroC.csv"))
 
-write_csv(Flush, here::here("Data/_summarized_data_files",
-                           "Tina_V_Sensor_HydroC_Flush.csv"))
+Flush %>% 
+  write_csv(here::here("Data/_summarized_data_files",
+                       "Tina_V_Sensor_HydroC_Flush.csv"))
 
 
 
