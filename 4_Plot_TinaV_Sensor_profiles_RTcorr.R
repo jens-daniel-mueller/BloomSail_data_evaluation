@@ -1,24 +1,27 @@
-#### Load required packages ####
+# Packages ----------------------------------------------------------------
 
 library(tidyverse)
 library(lubridate)
-library(here)
 
-#### Read summarized sensor data file ####
+# Read merged data file ---------------------------------------------------
 
-Sensor <- read_csv(here::here("Data/_merged_data_files", "BloomSail_Sensor_HydroC_RTcorr_long.csv"))
+Sensor <- read_csv(here::here("Data/_merged_data_files", "BloomSail_Sensor_HydroC.csv"),
+                   col_types = cols(
+                     .default = col_double(),
+                     date_time = col_datetime(format = ""),
+                     ID = col_character(),
+                     type = col_character(),
+                     station = col_character(),
+                     cast = col_character()))
+
+
+# Subset profile data -----------------------------------------------------
 
 Sensor <- Sensor %>% 
-  mutate(ID = as.factor(ID)) %>% 
-  filter(!(station %in% c("PX1", "PX2")),
+  filter(type == "P",
+         !(station %in% c("PX1", "PX2")),
          Zero != 1,
          Flush != 1)
-
-#### Plot vertical profiles ####
-
-Sensor <- Sensor %>% 
-  filter(type == "P")
-
 
 # Sensor_profile_long <-
 #   Sensor_profile %>% 
@@ -54,7 +57,7 @@ if (nrow(Sensor %>% filter(ID == i_ID, station == i_station)) > 0){
 Sensor %>% 
   filter(ID == i_ID,
          station == i_station) %>% 
-  ggplot(aes(tem_int, dep_int, col=cast))+
+  ggplot(aes(tem, dep, col=cast))+
   geom_path()+
   scale_y_reverse()+
   scale_color_brewer(palette = "Set1")+
@@ -82,9 +85,9 @@ Sensor %>%
   filter(ID == i_ID,
          station == i_station) %>% 
   ggplot()+
-  geom_path(aes(pCO2, dep_int, col=cast, linetype = "raw"))+
-  geom_path(aes(pCO2_RT_median, dep_int, col=cast, linetype = "RT_median"))+
-  geom_path(aes(pCO2_RT_mean, dep_int, col=cast, linetype = "RT_mean"))+
+  geom_path(aes(pCO2, dep, col=cast, linetype = "raw"))+
+  geom_path(aes(pCO2_RT_median, dep, col=cast, linetype = "RT_median"))+
+  geom_path(aes(pCO2_RT_mean, dep, col=cast, linetype = "RT_mean"))+
   scale_y_reverse()+
   scale_color_brewer(palette = "Set1")+
   labs(y="Depth [m]", title = str_c("Date: ",i_ID," | Station: ",i_station))+
@@ -126,7 +129,7 @@ Sensor %>%
   filter(ID == i_ID,
          station == i_station) %>% 
   ggplot()+
-  geom_path(aes(date_time, dep_int, col=cast, linetype = "raw"))+
+  geom_path(aes(date_time, dep, col=cast, linetype = "raw"))+
   scale_color_brewer(palette = "Set1")+
   labs(y="Depth [m]")+
   theme_bw()
@@ -142,5 +145,52 @@ ggsave(here::here("/Plots/TinaV/Sensor/all_profiles_RT", str_c(i_ID,"_",i_statio
 
     }
   }
+
+
+
+# Offset corrected profiles diagnosis -------------------------------------
+
+
+
+RT_diff <- Sensor %>% 
+  mutate(dep_int = cut(dep, seq(0,30,2))) %>% 
+  group_by(ID, station, dep_int, cast) %>%
+  summarise_all("mean", na.rm = TRUE) %>% 
+  ungroup() %>% 
+  select(ID, station, dep_int, cast, pCO2, pCO2_RT, pCO2_RT_mean, pCO2_RT_median) %>% 
+  pivot_longer(cols = c(pCO2, pCO2_RT, pCO2_RT_mean, pCO2_RT_median), names_to = "correction") %>% 
+  pivot_wider(names_from = cast, values_from = value) %>% 
+  mutate(d_pCO2 = down - up)
+
+RT_diff %>% 
+  filter(!is.na(dep_int)) %>% 
+  ggplot()+
+  #geom_point(aes(ymd(ID), d_pCO2))+
+  geom_violin(aes(ymd(ID), d_pCO2, group=ID))+
+  scale_color_viridis_d()+
+  facet_grid(dep_int~correction, scales = "free_y")+
+  geom_hline(yintercept = 0)
+
+RT_diff_sum <- Sensor %>% 
+  mutate(dep_int = as.numeric(as.character( cut(dep, seq(0,30,2),seq(1,29,2))))) %>% 
+  group_by(ID, station, dep_int, cast) %>%
+  summarise_all("mean") %>% 
+  ungroup() %>% 
+  select(ID, station, dep_int, cast, pCO2, pCO2_RT, pCO2_RT_mean, pCO2_RT_median) %>% 
+  pivot_longer(cols = c(pCO2, pCO2_RT, pCO2_RT_mean, pCO2_RT_median), names_to = "correction") %>% 
+  pivot_wider(names_from = cast, values_from = value) %>% 
+  mutate(d_pCO2 = down - up) %>% 
+  group_by(dep_int, correction) %>% 
+  summarise(mean_d_pCO2 = mean(d_pCO2, na.rm = TRUE)) %>% 
+  ungroup()
+
+RT_diff_sum %>% 
+  ggplot()+
+  geom_path(aes(-mean_d_pCO2, dep_int, col=correction))+
+  scale_y_reverse()
+
+
+
+
 
 
