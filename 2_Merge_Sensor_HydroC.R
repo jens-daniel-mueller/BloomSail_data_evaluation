@@ -41,14 +41,17 @@ rm(HC, Sensor)
 
 df <-
   df %>%
-  mutate(dep_int = na.approx(dep, na.rm = FALSE, maxgap = 15),
-         sal_int = na.approx(sal, na.rm = FALSE, maxgap = 15),
-         tem_int = na.approx(tem, na.rm = FALSE, maxgap = 15),
-         pCO2_analog_int = na.approx(pCO2_analog, na.rm = FALSE, maxgap = 15))
-  # fill(ID, type, station, cast) %>% 
-  # filter(!is.na(pCO2_corr),
-  #        !is.na(dep_int)) 
-
+  mutate(dep = na.approx(dep, na.rm = FALSE, maxgap = 15),
+         sal = na.approx(sal, na.rm = FALSE, maxgap = 15),
+         tem = na.approx(tem, na.rm = FALSE, maxgap = 15),
+         pCO2_analog = na.approx(pCO2_analog, na.rm = FALSE, maxgap = 15),
+         pH = na.approx(pH, na.rm = FALSE, maxgap = 15),
+         V_pH = na.approx(V_pH, na.rm = FALSE, maxgap = 15),
+         O2 = na.approx(O2, na.rm = FALSE, maxgap = 15),
+         Chl = na.approx(Chl, na.rm = FALSE, maxgap = 15)) %>% 
+  filter(!is.na(dep)) %>% 
+  fill(ID, type, station, cast) %>% 
+  filter(!is.na(deployment) | is.na(pCO2_analog))
 
 # Time stamp synchronzity -------------------------------------------------
 
@@ -61,10 +64,12 @@ for (dayID in unique(df$day)) {
     filter(day == dayID) %>% 
       ggplot()+
       geom_point(aes(date_time, pCO2, col="HC"))+
-      geom_point(aes(date_time, pCO2_analog_int, col="Sensor_int"))
+      geom_point(aes(date_time, dep, col="dep"))+
+      geom_point(aes(date_time, pH, col="pH"))+
+      geom_point(aes(date_time, pCO2_analog, col="Sensor_int"))
       
     ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Timing/day",
-                      paste(dayID,"_day_HydroC.jpg", sep="")),
+                      paste(dayID,"_day_HydroC_merged.jpg", sep="")),
            width = 10, height = 4)
 }
 
@@ -90,6 +95,11 @@ for (depID in unique(df$deployment)) {
 }
 
 
+
+
+# Safe merged data file ---------------------------------------------------
+
+write_csv(df, here::here("Data/_merged_data_files", "BloomSail_Sensor_HydroC.csv"))
 
 
 
