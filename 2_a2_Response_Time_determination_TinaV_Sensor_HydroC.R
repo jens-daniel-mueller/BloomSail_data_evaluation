@@ -9,12 +9,32 @@ library(lubridate)
 
 # Read and prepare data ---------------------------------------------------
 
-df <- read_csv(here::here("Data/_summarized_data_files",
-                          "Tina_V_Sensor_HydroC_Flush.csv"))
 
+# df <- read_csv(here::here("Data/_summarized_data_files",
+#                           "Tina_V_HydroC_Flush.csv"))
+
+df <- read_csv(here::here("Data/_merged_data_files",
+                          "BloomSail_Sensor_HydroC.csv"),
+               col_types = cols(ID = col_character(),
+                                pCO2_analog = col_double(),
+                                pCO2 = col_double(),
+                                Zero = col_factor(),
+                                Flush = col_factor(),
+                                Zero_ID = col_integer(),
+                                duration = col_double(),
+                                mixing = col_character()))
 
 df <- df %>%
-  filter(Zero_ID != 53)
+  select(date_time, ID, dep, tem, Flush, pCO2, Zero_ID, duration, mixing)
+
+df <- df %>%
+  filter(Flush == 1, duration <=300)
+
+# df <- df %>% 
+#   filter(Flush == 1, duration <=500, !(Zero_ID %in% c(13, 34, 49, 50, 89, 105, 109)))
+
+# df <- df %>%
+#   filter(Zero_ID != 53)
 
 df <- df %>% 
   group_by(Zero_ID, mixing) %>% 
@@ -23,28 +43,28 @@ df <- df %>%
 
 # Plot individual Flush periods with exponential fit ----------------------
 
-# for (i in unique(df$Zero_ID)) {
-# 
-# df_ID <- df %>%
-#   filter(Zero_ID == i)
-# 
-# fit <- df_ID %>%
-#   filter(mixing == "equilibration") %>%
-#   nls(pCO2_corr ~ SSasymp(duration_equi, yf, y0, log_alpha), data = .)
-# 
-# tau <- as.numeric(exp(-tidy(fit)[3,2]))
-# #RSS <- sum(resid(fit)^2)
-# 
-# augment(fit) %>% 
-#   ggplot(aes(duration_equi, pCO2_corr))+
-#   geom_point()+
-#   geom_line(aes(y = .fitted))+
-#   geom_vline(xintercept = tau)
-# 
-# ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Response_time_fits",
-#                   paste(i,"_Zero_ID_HydroC_RT.jpg", sep="")),
-#          width = 10, height = 4)
-# }
+for (i in unique(df$Zero_ID)) {
+
+df_ID <- df %>%
+  filter(Zero_ID == i)
+
+fit <- df_ID %>%
+  filter(mixing == "equilibration") %>%
+  nls(pCO2 ~ SSasymp(duration_equi, yf, y0, log_alpha), data = .)
+
+tau <- as.numeric(exp(-tidy(fit)[3,2]))
+#RSS <- sum(resid(fit)^2)
+
+augment(fit) %>%
+  ggplot(aes(duration_equi, pCO2))+
+  geom_point()+
+  geom_line(aes(y = .fitted))+
+  geom_vline(xintercept = tau)
+
+ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Response_time_fits",
+                  paste(i,"_Zero_ID_HydroC_RT_df_120.jpg", sep="")),
+         width = 10, height = 4)
+}
 
 
 # Response time fitting ---------------------------------------------------
@@ -52,7 +72,7 @@ df <- df %>%
 RT <- df %>% 
   filter(mixing == "equilibration") %>% 
   group_by(Zero_ID) %>% 
-  do(fit = nls(pCO2_corr ~ SSasymp(duration_equi, yf, y0, log_alpha), data = .)) %>% 
+  do(fit = nls(pCO2 ~ SSasymp(duration_equi, yf, y0, log_alpha), data = .)) %>% 
   tidy(fit) %>% 
   select(Zero_ID, term, estimate) %>% 
   spread(term, estimate) %>% 
@@ -65,7 +85,7 @@ RT <- df %>%
 augmented <- df %>% 
   filter(mixing == "equilibration") %>% 
   group_by(Zero_ID) %>% 
-  do(fit = nls(pCO2_corr ~ SSasymp(duration_equi, yf, y0, log_alpha), data = .)) %>% 
+  do(fit = nls(pCO2 ~ SSasymp(duration_equi, yf, y0, log_alpha), data = .)) %>% 
   augment(fit)
 
 # qplot(duration_equi, pCO2_corr, data = augmented, geom = 'point', colour = as.factor(Zero_ID)) +
@@ -76,8 +96,8 @@ augmented <- df %>%
 augmented_sum <- augmented %>% 
   group_by(Zero_ID) %>% 
   summarise(mean_resid = mean(abs(.resid)),
-            mean_resid_rel = mean(abs(.resid))/max(pCO2_corr),
-            max_pCO2_corr = max(pCO2_corr))
+            mean_resid_rel = mean(abs(.resid))/max(pCO2),
+            max_pCO2_corr = max(pCO2))
 
 
 
@@ -86,7 +106,7 @@ augmented_sum <- augmented %>%
 St_Err <- df %>% 
   filter(mixing == "equilibration") %>% 
   group_by(Zero_ID) %>% 
-  do(fit = nls(pCO2_corr ~ SSasymp(duration_equi, yf, y0, log_alpha), data = .)) %>% 
+  do(fit = nls(pCO2 ~ SSasymp(duration_equi, yf, y0, log_alpha), data = .)) %>% 
   tidy(fit) %>% 
   select(Zero_ID, term, std.error) %>% 
   spread(term, std.error) %>% 

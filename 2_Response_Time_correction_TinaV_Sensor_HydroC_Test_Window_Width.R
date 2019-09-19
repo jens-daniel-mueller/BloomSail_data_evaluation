@@ -40,17 +40,17 @@ df <- df %>%
 # Apply RT correction to entire data set ----------------------------------
 
 # Define functions and window width for rolling mean
-window <- 15
-rolling_mean   <- rollify(~mean(.x, na.rm = TRUE), window = window)
-rolling_median <- rollify(~median(.x, na.rm = TRUE), window = window)
+
+
+
 
 
 df <- df %>%
   group_by(deployment) %>% 
   mutate(pCO2_RT = RT_corr(pCO2, lag(pCO2), dt, tau),
          pCO2_RT = if_else(pCO2_RT %in% c(Inf, -Inf), NaN, pCO2_RT),
-         pCO2_RT_mean = rolling_mean(pCO2_RT),
-         pCO2_RT_median = rolling_median(pCO2_RT)) %>% 
+         pCO2_RT_mean = rollify(~mean(pCO2_RT, na.rm = TRUE), window = ww),
+         pCO2_RT_median = rollify(~median(pCO2_RT, na.rm = TRUE), window = ww)) %>% 
   ungroup()
 
 # time shift RT corrected data
@@ -63,6 +63,22 @@ rm(rolling_median, rolling_mean, shift, tau_high, tau_low, window, RT_corr)
      
 df <- full_join(df_full, df)
 rm(df_full)
+
+
+# Test some window width --------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Plot RT corrected data by deployment and Zero_ID ------------------------
 

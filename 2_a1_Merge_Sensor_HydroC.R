@@ -4,16 +4,15 @@ library(tidyverse)
 library(lubridate)
 library(zoo)
 
-# Load Sensor and RT corrected HydroC data --------------------------------
+
+# Load Sensor and HydroC data ---------------------------------------------
 
 Sensor <- read_csv(here::here("Data/_summarized_data_files",
                               "Tina_V_Sensor_Profiles_Transects.csv"),
-                   col_types = list("pCO2" = col_double()))
-
-Sensor <- Sensor %>% 
+                   col_types = list("pCO2" = col_double())) %>% 
   rename(pCO2_analog = pCO2)
 
-HC <- read_csv(here::here("Data/_summarized_data_files", "Tina_V_Sensor_HydroC_RTcorr.csv"))
+HC <- read_csv(here::here("Data/_summarized_data_files", "Tina_V_HydroC.csv"))
 
 # Time offset correction ----------------------------------------------
 
@@ -49,50 +48,50 @@ df <-
          V_pH = na.approx(V_pH, na.rm = FALSE, maxgap = 15),
          O2 = na.approx(O2, na.rm = FALSE, maxgap = 15),
          Chl = na.approx(Chl, na.rm = FALSE, maxgap = 15)) %>% 
-  filter(!is.na(dep)) %>% 
+  filter(!is.na(dep)) %>% #remove Sensor readings between deployments identified in HC data
   fill(ID, type, station, cast) %>% 
   filter(!is.na(deployment) | is.na(pCO2_analog))
 
 # Time stamp synchronzity -------------------------------------------------
-
-df <- df %>% 
-  mutate(day = yday(date_time))
-
-for (dayID in unique(df$day)) {
-  
-  df %>%
-    filter(day == dayID) %>% 
-      ggplot()+
-      geom_point(aes(date_time, pCO2, col="HC"))+
-      geom_point(aes(date_time, dep, col="dep"))+
-      geom_point(aes(date_time, pH, col="pH"))+
-      geom_point(aes(date_time, pCO2_analog, col="Sensor_int"))
-      
-    ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Timing/day",
-                      paste(dayID,"_day_HydroC_merged.jpg", sep="")),
-           width = 10, height = 4)
-}
-
-
-for (depID in unique(df$deployment)) {
-  
-  df_dep <- df %>%
-    filter(deployment == depID)
-  
-  for (zerID in unique(df_dep$Zero_ID)) {
-    
-    df_dep %>%
-      filter(Zero_ID == zerID, Zero == 1) %>% 
-      ggplot()+
-      geom_point(aes(date_time, pCO2, col="HC"))+
-      geom_point(aes(date_time, pCO2_analog_int, col="Sensor_int"))
-    
-    ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Timing/Zeroing",
-                      paste(depID,"_deployment_",zerID,"_Zero_ID_HydroC.jpg", sep="")),
-           width = 10, height = 4)
-    
-  }
-}
+# 
+# df <- df %>% 
+#   mutate(day = yday(date_time))
+# 
+# for (dayID in unique(df$day)) {
+#   
+#   df %>%
+#     filter(day == dayID) %>% 
+#       ggplot()+
+#       geom_point(aes(date_time, pCO2, col="HC"))+
+#       geom_point(aes(date_time, dep, col="dep"))+
+#       geom_point(aes(date_time, pH, col="pH"))+
+#       geom_point(aes(date_time, pCO2_analog, col="Sensor_int"))
+#       
+#     ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Timing/day",
+#                       paste(dayID,"_day_HydroC_merged.jpg", sep="")),
+#            width = 10, height = 4)
+# }
+# 
+# 
+# for (depID in unique(df$deployment)) {
+#   
+#   df_dep <- df %>%
+#     filter(deployment == depID, Zero == 1)
+#   
+#   for (zerID in unique(df_dep$Zero_ID)) {
+#     
+#     df_dep %>%
+#       filter(Zero_ID == zerID) %>% 
+#       ggplot()+
+#       geom_point(aes(date_time, pCO2, col="HC"))+
+#       geom_point(aes(date_time, pCO2_analog, col="Sensor_int"))
+#     
+#     ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Timing/Zeroing",
+#                       paste(depID,"_deployment_",zerID,"_Zero_ID_HydroC.jpg", sep="")),
+#            width = 10, height = 4)
+#     
+#   }
+# }
 
 
 
