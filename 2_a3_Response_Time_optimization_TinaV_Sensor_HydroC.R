@@ -74,21 +74,24 @@ df <- df %>%
  
 
 
-
-# Plot profiling depth vs time --------------------------------------------
-
-cast_dep <- df %>%
+df <- df %>%
   group_by(ID, station) %>% 
   mutate(duration = as.numeric(date_time - min(date_time))) %>%
   arrange(date_time)
-  #slice(which(row_number() %% 10 == 1))
 
-cast_dep <- cast_dep %>% 
+df <- df %>% 
   mutate(phase = "standby",
          phase = if_else(duration >= start & duration < down & !is.na(down) & !is.na(start),   "down", phase),
          phase = if_else(duration >= down  & duration < lift & !is.na(lift) & !is.na(down ),   "low",  phase),
          phase = if_else(duration >= lift   & duration < up   & !is.na(up  ) & !is.na(lift  ), "mid",  phase),
          phase = if_else(duration >= up    & duration < end  & !is.na(end ) & !is.na(up   ),   "up",   phase))
+
+
+# Plot profiling depth vs time --------------------------------------------
+
+
+cast_dep <- df %>% 
+  pivot_longer(c(dep, pCO2), names_to = "parameter", values_to = "value")
 
 
 # cast_dep %>%
@@ -110,11 +113,12 @@ for(i_ID in unique(cast_dep$ID)){
       cast_dep %>%
         filter(ID == i_ID,
                station == i_station) %>%
-        ggplot(aes(duration, dep, shape=Q_profiling, col=phase))+
-        geom_point()+
+        ggplot(aes(duration, value, shape=Q_profiling, col=phase))+
+        geom_point(size=0.5)+
         scale_y_reverse()+
         scale_x_continuous(breaks = seq(0,6000,100))+
-        labs(y="Depth [m]", title = str_c("Date: ",i_ID," | Station: ",i_station))+
+        labs(title = str_c("Date: ",i_ID," | Station: ",i_station))+
+        facet_grid(parameter~., scales = "free_y")+
         theme_bw()
       
       print(str_c(i_ID,"_",i_station,"_.jpg"))
@@ -189,32 +193,33 @@ rm(rolling_mean, shift, tau_high, tau_low, window, RT_corr)
 
 # Plot profiles with variable tau factor ----------------------------------
 
-# for(i_ID in unique(df$ID)){
-#   for(i_station in unique(df$station)){
-#     
-#     if (nrow(df %>% filter(ID == i_ID, station == i_station)) > 0){
-#       
-#       df %>%
-#         filter(ID == i_ID,
-#                station == i_station) %>%
-#         ggplot()+
-#         geom_path(aes(pCO2, dep, linetype = cast))+
-#         geom_path(aes(pCO2_RT_mean, dep, linetype = cast), col="red")+
-#         scale_y_reverse()+
-#         #scale_color_viridis_d()+
-#         labs(y="Depth [m]", title = str_c("Date: ",i_ID," | Station: ",i_station))+
-#         theme_bw()+
-#         facet_wrap(~tau_factor)
-#       
-#       print(str_c(i_ID,"_",i_station,"_.jpg"))
-#       ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Response_time_optimization",
-#                         str_c(i_ID,"_",i_station,"_pCO2_RTC.jpg")),
-#              width = 15, height = 12)
-#       
-#     }
-#     
-#   }
-# }
+for(i_ID in unique(df$ID)){
+  for(i_station in unique(df$station)){
+
+    if (nrow(df %>% filter(ID == i_ID, station == i_station)) > 0){
+
+      df %>%
+        filter(ID == i_ID,
+               station == i_station,
+               phase %in% c("up", "down")) %>%
+        ggplot()+
+        geom_path(aes(pCO2, dep, linetype = cast))+
+        geom_path(aes(pCO2_RT_mean, dep, linetype = cast), col="red")+
+        scale_y_reverse()+
+        #scale_color_viridis_d()+
+        labs(y="Depth [m]", title = str_c("Date: ",i_ID," | Station: ",i_station))+
+        theme_bw()+
+        facet_wrap(~tau_factor)
+
+      print(str_c(i_ID,"_",i_station,"_.jpg"))
+      ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Response_time_optimization",
+                        str_c(i_ID,"_",i_station,"_pCO2_RTC.jpg")),
+             width = 15, height = 12)
+
+    }
+
+  }
+}
 
 
 
