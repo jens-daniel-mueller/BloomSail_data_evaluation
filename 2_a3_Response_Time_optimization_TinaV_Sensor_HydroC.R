@@ -53,24 +53,24 @@ rm(meta)
 # Label disturbed profiles ------------------------------------------------
 
 
-df <- df %>%
-  mutate(Q_profiling = 0,
-         Q_profiling = if_else(ID == "180705" & station == "P02" & cast == "down", 1, Q_profiling), 
-         Q_profiling = if_else(ID == "180709" & station == "P08" & cast == "up"  , 1, Q_profiling), 
-         Q_profiling = if_else(ID == "180716" & station == "P01" & cast == "up"  , 1, Q_profiling), 
-         Q_profiling = if_else(ID == "180718" & station == "P04" & cast == "up"  , 1, Q_profiling), 
-         Q_profiling = if_else(ID == "180718" & station == "P07" & cast == "up"  , 1, Q_profiling), 
-         Q_profiling = if_else(ID == "180718" & station == "P13" & cast == "down", 1, Q_profiling), 
-         Q_profiling = if_else(ID == "180723" & station == "P04" & cast == "down", 1, Q_profiling), 
-         Q_profiling = if_else(ID == "180723" & station == "P06" & cast == "down", 1, Q_profiling), 
-         Q_profiling = if_else(ID == "180723" & station == "P07" & cast == "up"  , 1, Q_profiling), 
-         Q_profiling = if_else(ID == "180723" & station == "P09" & cast == "down", 1, Q_profiling), 
-         Q_profiling = if_else(ID == "180723" & station == "P13" & cast == "up"  , 1, Q_profiling), 
-         Q_profiling = if_else(ID == "180730" & station == "P08" & cast == "down", 1, Q_profiling), 
-         Q_profiling = if_else(ID == "180802" & station == "P02" & cast == "down", 1, Q_profiling), 
-         Q_profiling = if_else(ID == "180815" & station == "P09" & cast == "down", 1, Q_profiling), 
-         Q_profiling = if_else(ID == "180815" & station == "P11" & cast == "up"  , 1, Q_profiling),
-         Q_profiling = as.factor(Q_profiling))
+# df <- df %>%
+#   mutate(Q_profiling = 0,
+#          Q_profiling = if_else(ID == "180705" & station == "P02" & cast == "down", 1, Q_profiling), 
+#          Q_profiling = if_else(ID == "180709" & station == "P08" & cast == "up"  , 1, Q_profiling), 
+#          Q_profiling = if_else(ID == "180716" & station == "P01" & cast == "up"  , 1, Q_profiling), 
+#          Q_profiling = if_else(ID == "180718" & station == "P04" & cast == "up"  , 1, Q_profiling), 
+#          Q_profiling = if_else(ID == "180718" & station == "P07" & cast == "up"  , 1, Q_profiling), 
+#          Q_profiling = if_else(ID == "180718" & station == "P13" & cast == "down", 1, Q_profiling), 
+#          Q_profiling = if_else(ID == "180723" & station == "P04" & cast == "down", 1, Q_profiling), 
+#          Q_profiling = if_else(ID == "180723" & station == "P06" & cast == "down", 1, Q_profiling), 
+#          Q_profiling = if_else(ID == "180723" & station == "P07" & cast == "up"  , 1, Q_profiling), 
+#          Q_profiling = if_else(ID == "180723" & station == "P09" & cast == "down", 1, Q_profiling), 
+#          Q_profiling = if_else(ID == "180723" & station == "P13" & cast == "up"  , 1, Q_profiling), 
+#          Q_profiling = if_else(ID == "180730" & station == "P08" & cast == "down", 1, Q_profiling), 
+#          Q_profiling = if_else(ID == "180802" & station == "P02" & cast == "down", 1, Q_profiling), 
+#          Q_profiling = if_else(ID == "180815" & station == "P09" & cast == "down", 1, Q_profiling), 
+#          Q_profiling = if_else(ID == "180815" & station == "P11" & cast == "up"  , 1, Q_profiling),
+#          Q_profiling = as.factor(Q_profiling))
  
 
 
@@ -105,31 +105,31 @@ cast_dep <- df %>%
 #   geom_smooth(method = "lm", formula=y~x-1)
 
 
-for(i_ID in unique(cast_dep$ID)){
-  for(i_station in unique(cast_dep$station)){
-    
-    if (nrow(cast_dep %>% filter(ID == i_ID, station == i_station)) > 0){
-      
-      cast_dep %>%
-        filter(ID == i_ID,
-               station == i_station) %>%
-        ggplot(aes(duration, value, shape=Q_profiling, col=phase))+
-        geom_point(size=0.5)+
-        scale_y_reverse()+
-        scale_x_continuous(breaks = seq(0,6000,100))+
-        labs(title = str_c("Date: ",i_ID," | Station: ",i_station))+
-        facet_grid(parameter~., scales = "free_y")+
-        theme_bw()
-      
-      print(str_c(i_ID,"_",i_station,"_.jpg"))
-      ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Response_time_optimization",
-                        str_c(i_ID,"_",i_station,"_cast.jpg")),
-             width = 10, height = 5)
-      
-    }
-    
-  }
-}
+# for(i_ID in unique(cast_dep$ID)){
+#   for(i_station in unique(cast_dep$station)){
+#     
+#     if (nrow(cast_dep %>% filter(ID == i_ID, station == i_station)) > 0){
+#       
+#       cast_dep %>%
+#         filter(ID == i_ID,
+#                station == i_station) %>%
+#         ggplot(aes(duration, value, shape=Q_profiling, col=phase))+
+#         geom_point(size=0.5)+
+#         scale_y_reverse()+
+#         scale_x_continuous(breaks = seq(0,6000,100))+
+#         labs(title = str_c("Date: ",i_ID," | Station: ",i_station))+
+#         facet_grid(parameter~., scales = "free_y")+
+#         theme_bw()
+#       
+#       print(str_c(i_ID,"_",i_station,"_.jpg"))
+#       ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Response_time_optimization",
+#                         str_c(i_ID,"_",i_station,"_cast.jpg")),
+#              width = 10, height = 5)
+#       
+#     }
+#     
+#   }
+# }
 
 
 
@@ -157,7 +157,7 @@ df <- df %>%
          tau = if_else(date_time < ymd_hms("2018-07-17;13:08:34"),
                        tau_low, tau_high))
 
-df <- expand_grid(df, tau_factor = seq(0.2, 1.8, 0.2))
+df <- expand_grid(df, tau_factor = seq(0.7, 1.6, 0.1))
 
 df <- df %>%
   mutate(tau_test = tau*tau_factor)
@@ -193,46 +193,15 @@ rm(rolling_mean, shift, tau_high, tau_low, window, RT_corr)
 
 # Plot profiles with variable tau factor ----------------------------------
 
-for(i_ID in unique(df$ID)){
-  for(i_station in unique(df$station)){
-
-    if (nrow(df %>% filter(ID == i_ID, station == i_station)) > 0){
-
-      df %>%
-        filter(ID == i_ID,
-               station == i_station,
-               phase %in% c("up", "down")) %>%
-        ggplot()+
-        geom_path(aes(pCO2, dep, linetype = cast))+
-        geom_path(aes(pCO2_RT_mean, dep, linetype = cast), col="red")+
-        scale_y_reverse()+
-        #scale_color_viridis_d()+
-        labs(y="Depth [m]", title = str_c("Date: ",i_ID," | Station: ",i_station))+
-        theme_bw()+
-        facet_wrap(~tau_factor)
-
-      print(str_c(i_ID,"_",i_station,"_.jpg"))
-      ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Response_time_optimization",
-                        str_c(i_ID,"_",i_station,"_pCO2_RTC.jpg")),
-             width = 15, height = 12)
-
-    }
-
-  }
-}
-
-
-
-# Plot clean profiles with variable tau factor ----------------------------------
-
-# for(i_ID in unique(df_clean$ID)){
-#   for(i_station in unique(df_clean$station)){
+# for(i_ID in unique(df$ID)){
+#   for(i_station in unique(df$station)){
 # 
-#     if (nrow(df_clean %>% filter(ID == i_ID, station == i_station)) > 0){
+#     if (nrow(df %>% filter(ID == i_ID, station == i_station)) > 0){
 # 
-#       df_clean %>%
+#       df %>%
 #         filter(ID == i_ID,
-#                station == i_station) %>%
+#                station == i_station,
+#                phase %in% c("up", "down")) %>%
 #         ggplot()+
 #         geom_path(aes(pCO2, dep, linetype = cast))+
 #         geom_path(aes(pCO2_RT_mean, dep, linetype = cast), col="red")+
@@ -244,7 +213,7 @@ for(i_ID in unique(df$ID)){
 # 
 #       print(str_c(i_ID,"_",i_station,"_.jpg"))
 #       ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Response_time_optimization",
-#                         str_c(i_ID,"_",i_station,"_pCO2_RTC_clean.jpg")),
+#                         str_c(i_ID,"_",i_station,"_pCO2_RTC.jpg")),
 #              width = 15, height = 12)
 # 
 #     }
@@ -255,107 +224,165 @@ for(i_ID in unique(df$ID)){
 
 
 
-
-
 # Offset corrected profiles diagnosis -------------------------------------
 
-RT_diff <- df_clean %>% 
-  mutate(dep_int = as.numeric(as.character( cut(dep, seq(0,40,2),seq(1,39,2)))),
-         tau_factor = as.factor(tau_factor)) %>%
-  group_by(ID, station, tau_factor, dep_int, cast) %>%
+RT_diff <- df %>% 
+  filter(phase %in% c("down", "up")) %>% 
+  mutate(dep_int = as.numeric(as.character( cut(dep, seq(0,40,2),seq(1,39,2))))) %>% 
+# ,
+#          tau_factor = as.factor(tau_factor)) %>%
+  select(ID, station, tau_factor, p_type, dep_int, phase, pCO2, pCO2_RT_mean) %>% 
+  group_by(ID, station, tau_factor, dep_int, phase) %>%
   summarise_all("mean", na.rm = TRUE) %>% 
   ungroup() %>% 
-  select(ID, station, tau_factor, dep_int, cast, pCO2, pCO2_RT_mean) %>% 
   pivot_longer(cols = c(pCO2, pCO2_RT_mean), names_to = "correction") %>% 
-  pivot_wider(names_from = cast, values_from = value) %>% 
+  pivot_wider(names_from = phase, values_from = value) %>% 
   mutate(d_pCO2 = up - down,
          mean_pCO2 = (down + up)/2,
          d_pCO2_rel = 100 * d_pCO2 / mean_pCO2)
 
 
-for(i_ID in unique(RT_diff$ID)){
-  for(i_station in unique(RT_diff$station)){
+# for(i_ID in unique(RT_diff$ID)){
+#   for(i_station in unique(RT_diff$station)){
+# 
+#     if (nrow(RT_diff %>% filter(ID == i_ID, station == i_station)) > 0){
+# 
+#       RT_diff %>%
+#         filter(ID == i_ID,
+#                station == i_station,
+#                correction == "pCO2_RT_mean") %>%
+#         arrange(dep_int) %>%
+#         ggplot(aes(d_pCO2, dep_int, col=tau_factor))+
+#         geom_path()+
+#         geom_point()+
+#         scale_y_reverse(breaks=seq(0,40,2))+
+#         labs(y="Depth [m]", title = str_c("Date: ",i_ID," | Station: ",i_station))+
+#         geom_vline(xintercept = 0)+
+#         geom_vline(xintercept = c(-10,10), col="red")+
+#         theme_bw()
+# 
+#       print(str_c(i_ID,"_",i_station,"_.jpg"))
+#       ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Response_time_optimization",
+#                         str_c(i_ID,"_",i_station,"_d_pCO2.jpg")),
+#              width = 15, height = 12)
+# 
+#     }
+# 
+#   }
+# }
 
-    if (nrow(RT_diff %>% filter(ID == i_ID, station == i_station)) > 0){
-
-      RT_diff %>%
-        filter(ID == i_ID,
-               station == i_station,
-               correction == "pCO2_RT_mean") %>%
-        arrange(dep_int) %>% 
-        ggplot()+
-        geom_path(aes(d_pCO2, dep_int, col=tau_factor))+
-        scale_y_reverse()+
-        labs(y="Depth [m]", title = str_c("Date: ",i_ID," | Station: ",i_station))+
-        geom_vline(xintercept = 0)+
-        geom_vline(xintercept = c(-10,10), col="red")+
-        theme_bw()
-
-      print(str_c(i_ID,"_",i_station,"_.jpg"))
-      ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Response_time_optimization",
-                        str_c(i_ID,"_",i_station,"_d_pCO2.jpg")),
-             width = 15, height = 12)
-
-    }
-
-  }
-}
-
-for(i_ID in unique(RT_diff$ID)){
-  for(i_station in unique(RT_diff$station)){
-
-    if (nrow(RT_diff %>% filter(ID == i_ID, station == i_station)) > 0){
-
-      RT_diff %>%
-        filter(ID == i_ID,
-               station == i_station,
-               correction == "pCO2_RT_mean") %>%
-        arrange(dep_int) %>% 
-        ggplot()+
-        geom_path(aes(d_pCO2_rel, dep_int, col=tau_factor))+
-        scale_y_reverse()+
-        labs(y="Depth [m]", title = str_c("Date: ",i_ID," | Station: ",i_station))+
-        geom_vline(xintercept = 0)+
-        geom_vline(xintercept = c(-10,10), col="red")+
-        theme_bw()
-
-      print(str_c(i_ID,"_",i_station,"_.jpg"))
-      ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Response_time_optimization",
-                        str_c(i_ID,"_",i_station,"_d_pCO2_rel.jpg")),
-             width = 15, height = 12)
-
-    }
-
-  }
-}
+# for(i_ID in unique(RT_diff$ID)){
+#   for(i_station in unique(RT_diff$station)){
+# 
+#     if (nrow(RT_diff %>% filter(ID == i_ID, station == i_station)) > 0){
+# 
+#       RT_diff %>%
+#         filter(ID == i_ID,
+#                station == i_station,
+#                correction == "pCO2_RT_mean") %>%
+#         arrange(dep_int) %>% 
+#         ggplot()+
+#         geom_path(aes(d_pCO2_rel, dep_int, col=tau_factor))+
+#         scale_y_reverse()+
+#         labs(y="Depth [m]", title = str_c("Date: ",i_ID," | Station: ",i_station))+
+#         geom_vline(xintercept = 0)+
+#         geom_vline(xintercept = c(-10,10), col="red")+
+#         theme_bw()
+# 
+#       print(str_c(i_ID,"_",i_station,"_.jpg"))
+#       ggsave(here::here("/Plots/TinaV/Sensor/HydroC_diagnostics/Response_time_optimization",
+#                         str_c(i_ID,"_",i_station,"_d_pCO2_rel.jpg")),
+#              width = 15, height = 12)
+# 
+#     }
+# 
+#   }
+# }
 
 
-# RT_diff %>% 
-#   filter(!is.na(dep_int)) %>% 
-#   ggplot()+
-#   geom_violin(aes(dep_int, d_pCO2, group=dep_int))+
-#   scale_color_viridis_d()+
-#   facet_wrap(~correction)+
-#   geom_hline(yintercept = 0)+
-#   scale_x_reverse()+
-#   coord_flip()
+df %>%
+  ggplot(aes(pCO2_RT_mean, dep))+
+  geom_point()+
+  scale_y_reverse()+
+  scale_color_viridis_c()
+
+RT_diff %>%
+  group_by(ID, station) %>% 
+  mutate(max_pCO2 = max(mean_pCO2)) %>% 
+  ungroup() %>% 
+  filter(tau_factor == 1) %>%
+  ggplot(aes(max_pCO2, d_pCO2, col=as.factor(p_type)))+
+  geom_point()+
+  #scale_color_viridis_d()+
+  facet_wrap(~correction)
+
+RT_diff %>%
+  filter(tau_factor == 1) %>%
+  ggplot(aes(mean_pCO2, d_pCO2, col=dep_int))+
+  geom_point()+
+  scale_color_viridis_c()+
+  facet_wrap(~correction)
+
+
+
+
+
 
 RT_diff_sum <- RT_diff %>% 
-  group_by(tau_factor, dep_int, correction) %>% 
+  group_by(tau_factor, dep_int, correction, p_type) %>% 
   summarise(mean = mean(d_pCO2, na.rm = TRUE),
             mean_abs = mean(abs(d_pCO2), na.rm = TRUE),
             mean_rel = mean(d_pCO2_rel, na.rm = TRUE),
             mean_rel_abs = mean(abs(d_pCO2_rel), na.rm = TRUE)) %>% 
   ungroup() %>% 
-  pivot_longer(cols = 4:7, names_to = "estimate", values_to = "dpCO2")
+  pivot_longer(cols = 5:8, names_to = "estimate", values_to = "dpCO2")
 
 
 
 RT_diff_sum %>% 
-  #filter(correction == "pCO2_RT_mean") %>% 
+  filter(correction == "pCO2_RT_mean") %>% 
   ggplot()+
   geom_path(aes(dpCO2, dep_int, col=tau_factor))+
   scale_y_reverse()+
+  coord_cartesian(xlim = c(-30,30))+
   geom_vline(xintercept = 0)+
   theme_bw()+
-  facet_grid(estimate~correction)
+  geom_vline(xintercept = 0)+
+  geom_vline(xintercept = c(-10,10), col="red")+
+  facet_grid(estimate~p_type)
+
+RT_diff_sum %>% 
+  filter(dep_int < 20, tau_factor == 1, p_type != 4) %>% 
+  group_by(estimate, p_type, correction) %>% 
+  summarise(mean_dpCO2 = mean(dpCO2)) %>% 
+  ungroup() %>% 
+  ggplot(aes(correction, mean_dpCO2, fill=estimate))+
+  geom_boxplot()+
+  scale_y_continuous(limits = c(0,40))+
+  theme_bw()
+
+RT_diff %>% 
+  filter(dep_int < 20) %>% 
+  ggplot(aes(as.factor(tau_factor), d_pCO2, fill=correction))+
+  geom_violin()+
+  geom_hline(yintercept = 0)+
+  geom_vline(xintercept = 1)+
+  facet_grid(.~p_type)+
+  theme_bw()
+
+RT_diff_sum %>% 
+  filter(dep_int < 20) %>% 
+  group_by(estimate, p_type, correction, tau_factor) %>% 
+  summarise(mean_dpCO2 = mean(dpCO2)) %>% 
+  ungroup() %>% 
+  ggplot(aes(tau_factor, mean_dpCO2, col=correction))+
+  geom_point()+
+  geom_hline(yintercept = 0)+
+  geom_vline(xintercept = 1)+
+  facet_grid(estimate~p_type)+
+  theme_bw()
+
+
+
+
+
